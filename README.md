@@ -7,13 +7,13 @@ clickable, polished prototype with sample content.
 
 ## Stack
 
-| Layer        | Tool                                                  |
-| ------------ | ----------------------------------------------------- |
-| Framework    | Next.js 16 (App Router, TypeScript, Turbopack)        |
-| UI           | Tailwind CSS v4                                       |
-| Typography   | Fraunces (display) + Inter (UI), via `next/font`      |
-| State        | React Context (`PlayerProvider`)                      |
-| Audio        | Native HTML5 `<audio>` (single shared element)        |
+| Layer      | Tool                                             |
+| ---------- | ------------------------------------------------ |
+| Framework  | Next.js 16 (App Router, TypeScript, Turbopack)   |
+| UI         | Tailwind CSS v4                                  |
+| Typography | Fraunces (display) + Inter (UI), via `next/font` |
+| State      | React Context (`PlayerProvider`)                 |
+| Audio      | Native HTML5 `<audio>` (single shared element)   |
 
 The MVP runs entirely locally with no external services. Subscriptions, auth,
 ingestion, transcription and the weekly digest are stubbed in the UI and will
@@ -40,7 +40,7 @@ sign-up / sign-in / per-user data, follow **Supabase setup** below.
    with row-level security and the trigger that creates a profile on signup.
 3. **Copy your keys** — Dashboard → Project Settings → API. You need:
    - **Project URL** (looks like `https://xxxxx.supabase.co`)
-   - **`anon` `public` key** (a long JWT — *not* the `service_role` key)
+   - **`anon` `public` key** (a long JWT — _not_ the `service_role` key)
 4. **Create `.env.local`** at the repo root (it's gitignored):
 
    ```bash
@@ -59,15 +59,15 @@ sign-up / sign-in / per-user data, follow **Supabase setup** below.
 
 ## Routes
 
-| Path                | What it is                                      |
-| ------------------- | ----------------------------------------------- |
-| `/`                 | Home — hero, trending, pastors, recent, CTA     |
-| `/sermons`          | Browse — search, filter by pastor / topic, sort |
-| `/sermons/[slug]`   | Sermon detail — player + about + related        |
-| `/pastors/[slug]`   | Pastor profile — bio + their sermons            |
-| `/pricing`          | Subscription tiers (Seeker / Devoted / Patron)  |
-| `/auth/sign-in`     | Sign-in stub                                    |
-| `/auth/sign-up`     | Sign-up stub (collects city / ZIP)              |
+| Path              | What it is                                      |
+| ----------------- | ----------------------------------------------- |
+| `/`               | Home — hero, trending, pastors, recent, CTA     |
+| `/sermons`        | Browse — search, filter by pastor / topic, sort |
+| `/sermons/[slug]` | Sermon detail — player + about + related        |
+| `/pastors/[slug]` | Pastor profile — bio + their sermons            |
+| `/pricing`        | Subscription tiers (Seeker / Devoted / Patron)  |
+| `/auth/sign-in`   | Sign-in stub                                    |
+| `/auth/sign-up`   | Sign-up stub (collects city / ZIP)              |
 
 ## Folder layout
 
@@ -89,27 +89,27 @@ public/
 
 ## Sermon audio
 
-The three `private/audio/demo-*.wav` files are short macOS `say` clips so the
-demo plays offline without any cloud dependency. They live **outside** `public/`
-and are served only through the gated `/api/stream/[id]` route, which enforces
-the plan/quota before handing the listener the audio — so the free streaming cap
-can't be bypassed by hitting a static URL:
+The three `private/audio/demo-*.wav` files are short macOS `say` clips used as
+the demo source. They live **outside** `public/` and are the upload source for
+Supabase Storage — they are never served directly:
 
 ```bash
 say -o /tmp/x.aiff "your script"
 afconvert -f WAVE -d LEI16@22050 -c 1 /tmp/x.aiff private/audio/demo-1.wav
 ```
 
-**Serving (signed URLs vs. local fallback).** When `SUPABASE_SERVICE_ROLE_KEY`
-is set, the stream route mints a short-lived **Supabase Storage signed URL** and
-`307`-redirects to it, so object storage serves the bytes and HTTP range/seek
-directly — the serverless function never proxies audio. Without the service key
-it falls back to streaming the bundled `private/audio/*.wav` from disk (handy for
-local dev). To populate Storage:
+**Serving (signed URLs).** Audio is stored in a private Supabase Storage bucket
+(`sermons`). The gated `/api/stream/[id]` route enforces the plan/quota, records
+the listen, then mints a short-lived **signed Storage URL** and `307`-redirects
+to it — object storage serves the bytes and HTTP range/seek directly, so the
+serverless function never proxies audio and the cap can't be bypassed. The route
+requires `SUPABASE_SERVICE_ROLE_KEY`; without it (or if the object is missing) it
+returns `503`. To populate Storage:
 
 ```bash
 # 1. add SUPABASE_SERVICE_ROLE_KEY to .env.local (Supabase → Settings → API)
-# 2. run migration 003 (creates the private `sermons` bucket)
+# 2. run migration 003 (creates the private `sermons` bucket — the upload
+#    script also creates it if missing)
 # 3. upload the demo files to the bucket
 npm run upload:audio
 ```
@@ -117,7 +117,6 @@ npm run upload:audio
 For real sermons, swap the demo clips for Opus / AAC stored in the same private
 bucket (or Cloudflare R2) and keep the signed-URL gate — only the upload source
 changes.
-
 
 ## Next milestones
 
@@ -128,4 +127,3 @@ changes.
 4. **AI excerpts** — Whisper transcription + GPT segmentation → 60s shareable clip
 5. **Weekly digest** — Resend + React Email, personalized by city / followed pastors
 6. **Geo features** — PostGIS for "trending near you" and local events
-
