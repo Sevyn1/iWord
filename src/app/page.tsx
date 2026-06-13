@@ -80,8 +80,8 @@ export default async function HomePage() {
             </h1>
             <p className="mt-6 text-lg text-cream-muted max-w-xl leading-relaxed">
               iWord brings beloved sermons from around the world into a single
-              library. Stream on the train, download for the long drive, share a
-              60‑second excerpt with a friend who needs it.
+              library. Stream on the train, follow the pastors you love, and
+              share a 60‑second excerpt with a friend who needs it.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -169,8 +169,8 @@ export default async function HomePage() {
         <Section
           title="From pastors you follow"
           action={
-            <Link href="/account" className="text-sm text-cream-muted hover:text-cream">
-              Manage follows →
+            <Link href="/following" className="text-sm text-cream-muted hover:text-cream">
+              See all →
             </Link>
           }
         >

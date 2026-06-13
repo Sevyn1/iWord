@@ -11,6 +11,9 @@ const NAV = [
   { href: "/pricing", label: "Pricing" },
 ];
 
+/** Nav links shown only to signed-in members. */
+const MEMBER_NAV = [{ href: "/following", label: "Following" }];
+
 export function Navbar({
   userSlot,
   mobileUserSlot,
@@ -26,6 +29,8 @@ export function Navbar({
 
   const signedIn = plan !== null;
   const isMember = plan === "devoted" || plan === "patron";
+
+  const navItems = signedIn ? [...NAV, ...MEMBER_NAV] : NAV;
 
   // Close the mobile menu whenever the route changes.
   React.useEffect(() => {
@@ -50,7 +55,7 @@ export function Navbar({
         </Link>
 
         <nav className="hidden md:flex items-center gap-1 ml-4">
-          {NAV.map((item) => {
+          {navItems.map((item) => {
             const active =
               item.href === "/"
                 ? pathname === "/"
@@ -118,6 +123,7 @@ export function Navbar({
       {menuOpen && (
         <MobileMenu
           pathname={pathname}
+          navItems={navItems}
           userSlot={mobileUserSlot}
           onClose={() => setMenuOpen(false)}
         />
@@ -128,10 +134,12 @@ export function Navbar({
 
 function MobileMenu({
   pathname,
+  navItems,
   userSlot,
   onClose,
 }: {
   pathname: string;
+  navItems: { href: string; label: string }[];
   userSlot?: React.ReactNode;
   onClose: () => void;
 }) {
@@ -147,7 +155,7 @@ function MobileMenu({
         <SearchStub onSubmit={onClose} />
 
         <nav className="flex flex-col gap-1">
-          {NAV.map((item) => {
+          {navItems.map((item) => {
             const active =
               item.href === "/"
                 ? pathname === "/"
