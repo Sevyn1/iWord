@@ -8,6 +8,8 @@ import { PASTORS } from "@/lib/pastors";
 import { getSermonById } from "@/lib/sermons";
 import { SermonCard } from "@/components/SermonCard";
 import { signOut } from "@/app/auth/actions";
+import { isStripeConfigured } from "@/lib/stripe";
+import { manageBilling } from "@/app/pricing/actions";
 
 export const metadata = { title: "Your account — iWord" };
 
@@ -55,6 +57,7 @@ export default async function AccountPage() {
   const plan = (profile?.plan as "free" | "devoted" | "patron" | undefined) ?? "free";
   const isPaid = plan === "devoted" || plan === "patron";
   const planName = plan === "devoted" ? "Devoted" : plan === "patron" ? "Patron" : "Seeker";
+  const billingEnabled = isStripeConfigured();
 
   // Free-plan monthly streaming usage.
   const monthlyUsed = isPaid ? 0 : (await getMonthlyListenedIds()).length;
@@ -94,12 +97,23 @@ export default async function AccountPage() {
               </svg>
               Subscribed to the weekly digest
             </span>
-            <Link
-              href="/pricing"
-              className="text-xs text-cream-muted hover:text-cream underline underline-offset-2"
-            >
-              {isPaid ? "Manage plan" : "Upgrade plan"}
-            </Link>
+            {isPaid && billingEnabled ? (
+              <form action={manageBilling}>
+                <button
+                  type="submit"
+                  className="text-xs text-cream-muted hover:text-cream underline underline-offset-2"
+                >
+                  Manage billing
+                </button>
+              </form>
+            ) : (
+              <Link
+                href="/pricing"
+                className="text-xs text-cream-muted hover:text-cream underline underline-offset-2"
+              >
+                {isPaid ? "Manage plan" : "Upgrade plan"}
+              </Link>
+            )}
           </div>
         </div>
         <form action={signOut} className="sm:ml-auto">

@@ -118,6 +118,42 @@ For real sermons, swap the demo clips for Opus / AAC stored in the same private
 bucket (or Cloudflare R2) and keep the signed-URL gate — only the upload source
 changes.
 
+## Billing (Stripe)
+
+Paid tiers (Devoted, Patron) use **Stripe Checkout** for subscriptions; the
+`profiles.plan` column is the source of truth and is synced by a webhook. The
+gating (stream cap, excerpts) keys off that plan.
+
+Flow:
+
+- `/pricing` → `startCheckout` server action creates a Checkout Session and
+  redirects to Stripe. The free button (for paid members) opens the billing
+  portal to cancel.
+- `/account` → **Manage billing** opens the Stripe billing portal.
+- `POST /api/stripe/webhook` verifies the signature and, on subscription
+  create/update/delete, writes `plan` + Stripe ids/status to the profile using
+  the **service-role** client. This is the only thing that grants/revokes paid
+  access.
+
+If Stripe env vars are absent the pricing buttons fall back to **demo mode**
+(setting the plan directly, no charge), so the app keeps working without billing.
+
+Setup (test mode):
+
+```bash
+# 1. add STRIPE_SECRET_KEY to .env.local (Stripe → Developers → API keys)
+# 2. create the products + prices, then paste the printed ids into .env.local
+npm run setup:stripe
+# 3. run migration 004 (adds stripe_* columns to profiles)
+# 4. forward webhooks locally and copy the printed whsec_... into .env.local
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+In production, add a webhook endpoint in the Stripe dashboard pointing at
+`https://<your-domain>/api/stripe/webhook` (events: `checkout.session.completed`,
+`customer.subscription.*`) and set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+`STRIPE_PRICE_DEVOTED`, `STRIPE_PRICE_PATRON` in Vercel.
+
 ## Next milestones
 
 1. **Auth + persistence** — Supabase (Postgres + Auth + RLS + Storage)

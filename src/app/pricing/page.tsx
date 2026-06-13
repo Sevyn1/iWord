@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { TIERS } from "@/lib/pricing";
 import { getCurrentAccount } from "@/lib/account";
-import { selectPlan } from "./actions";
+import { startCheckout } from "./actions";
 
 // Map a pricing tier id to the plan value stored on the profile.
 function tierToPlan(tierId: string): "free" | "devoted" | "patron" {
@@ -102,7 +102,7 @@ export default async function PricingPage({
       </div>
 
       <p className="text-center text-xs text-cream-faint mt-10">
-        Prices in USD. Payment processing via Stripe (wiring in progress).
+        Prices in USD. Secure payments by Stripe. Cancel anytime from your account.
       </p>
     </div>
   );
@@ -155,12 +155,12 @@ function PlanButton({
     );
   }
 
-  // Signed in → set the plan directly.
+  // Signed in → start checkout (or downgrade) via Stripe.
   return (
-    <form action={selectPlan} className="mt-auto">
+    <form action={startCheckout} className="mt-auto">
       <input type="hidden" name="plan" value={plan} />
       <button type="submit" className={`${baseClass} ${solid}`}>
-        {plan === "free" ? "Switch to free" : `Switch to ${tierName}`}
+        {plan === "free" ? "Switch to free" : `Start ${tierName}`}
       </button>
     </form>
   );
