@@ -51,7 +51,7 @@ export async function POST(request: Request) {
           const subscription = await stripe.subscriptions.retrieve(
             String(session.subscription)
           );
-          await syncSubscription(subscription, userId);
+          await syncSubscription(stripe, subscription, userId);
         }
         break;
       }
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const subscription = event.data.object;
-        await syncSubscription(subscription, null);
+        await syncSubscription(stripe, subscription, null);
         break;
       }
       default:
@@ -74,30 +74,65 @@ export async function POST(request: Request) {
   return NextResponse.json({ received: true });
 }
 
-/** Map a Stripe subscription to a plan and persist it on the profile. */
+/** Higher rank wins when a customer briefly holds more than one subscription. */
+const PLAN_RANK: Record<Plan, number> = { free: 0, devoted: 1, patron: 2 };
+
+/**
+ * Resolve a member's effective plan from *all* their active subscriptions
+ * rather than the single one in the current event. This keeps a member on
+ * their highest active tier even when another (e.g. duplicate) subscription
+ * is canceled.
+ */
+async function resolvePlanForCustomer(
+  stripe: Stripe,
+  customerId: string
+): Promise<{ plan: Plan; subscriptionId: string | null; status: string }> {
+  const subs = await stripe.subscriptions.list({
+    customer: customerId,
+    status: "all",
+    limit: 100,
+  });
+
+  let best: { plan: Plan; subscriptionId: string | null; status: string } = {
+    plan: "free",
+    subscriptionId: null,
+    status: "canceled",
+  };
+
+  for (const sub of subs.data) {
+    const isActive = sub.status === "active" || sub.status === "trialing";
+    if (!isActive) continue;
+    const plan = planForPriceId(sub.items.data[0]?.price?.id ?? null) ?? "free";
+    if (PLAN_RANK[plan] > PLAN_RANK[best.plan]) {
+      best = { plan, subscriptionId: sub.id, status: sub.status };
+    }
+  }
+
+  return best;
+}
+
+/** Recompute a member's plan from Stripe and persist it on the profile. */
 async function syncSubscription(
+  stripe: Stripe,
   subscription: Stripe.Subscription,
   userIdHint: string | null
 ) {
   const supabase = createAdminClient();
   if (!supabase) return;
 
-  const status = subscription.status;
-  const priceId = subscription.items.data[0]?.price?.id ?? null;
-
-  // Active/trialing → the subscribed plan; otherwise drop to free.
-  const isActive = status === "active" || status === "trialing";
-  const plan: Plan = isActive ? planForPriceId(priceId) ?? "free" : "free";
-
   const customerId =
     typeof subscription.customer === "string"
       ? subscription.customer
       : subscription.customer.id;
 
+  // Source the plan from the customer's current active subscriptions so that
+  // canceling one of several subscriptions doesn't wrongly drop the member.
+  const resolved = await resolvePlanForCustomer(stripe, customerId);
+
   const update = {
-    plan,
-    stripe_subscription_id: subscription.id,
-    stripe_status: status,
+    plan: resolved.plan,
+    stripe_subscription_id: resolved.subscriptionId ?? subscription.id,
+    stripe_status: resolved.subscriptionId ? resolved.status : subscription.status,
   };
 
   // Match by the Stripe customer id (set on the profile during checkout).
