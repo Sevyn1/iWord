@@ -86,6 +86,32 @@ export async function startCheckout(formData: FormData): Promise<void> {
     profile?.stripe_customer_id ?? null
   );
 
+  // Already subscribed → change the existing subscription's price in place
+  // (Stripe prorates the difference) instead of opening a second subscription.
+  const existing = await getActiveSubscription(stripe, customerId);
+  if (existing) {
+    const item = existing.items.data[0];
+    const alreadyOnPlan =
+      item?.price?.id === priceId && !existing.cancel_at_period_end;
+
+    if (!alreadyOnPlan && item) {
+      await stripe.subscriptions.update(existing.id, {
+        items: [{ id: item.id, price: priceId }],
+        proration_behavior: "create_prorations",
+        cancel_at_period_end: false,
+        metadata: { supabase_user_id: user.id, plan },
+      });
+      // Optimistic write so /account reflects immediately; the webhook remains
+      // the source of truth and will reconcile the same value.
+      await supabase.from("profiles").update({ plan }).eq("id", user.id);
+    }
+
+    revalidatePath("/", "layout");
+    revalidatePath("/account");
+    redirect("/account?upgraded=1");
+  }
+
+  // First-time subscriber → start a Checkout Session.
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
@@ -131,6 +157,23 @@ export async function manageBilling(): Promise<void> {
     return_url: `${baseUrl}/account`,
   });
   redirect(portal.url);
+}
+
+/** The member's current active (or trialing) subscription, if any. */
+async function getActiveSubscription(
+  stripe: Stripe,
+  customerId: string
+): Promise<Stripe.Subscription | null> {
+  const subs = await stripe.subscriptions.list({
+    customer: customerId,
+    status: "all",
+    limit: 100,
+  });
+  return (
+    subs.data.find(
+      (s) => s.status === "active" || s.status === "trialing"
+    ) ?? null
+  );
 }
 
 /** Find or create the Stripe customer for a user and persist its id. */

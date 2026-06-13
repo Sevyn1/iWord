@@ -95,6 +95,7 @@ export default async function PricingPage({
                 highlight={Boolean(t.highlight)}
                 isCurrent={isCurrent}
                 signedIn={signedIn}
+                currentPlan={currentPlan}
               />
             </div>
           );
@@ -116,6 +117,7 @@ function PlanButton({
   highlight,
   isCurrent,
   signedIn,
+  currentPlan,
 }: {
   tierId: string;
   tierName: string;
@@ -124,6 +126,7 @@ function PlanButton({
   highlight: boolean;
   isCurrent: boolean;
   signedIn: boolean;
+  currentPlan: "free" | "devoted" | "patron" | null;
 }) {
   const baseClass =
     "mt-7 inline-flex items-center justify-center px-4 py-2.5 rounded-full font-medium transition-colors w-full";
@@ -155,12 +158,14 @@ function PlanButton({
     );
   }
 
-  // Signed in → start checkout (or downgrade) via Stripe.
+  // Signed in → start checkout, switch plan, or downgrade via Stripe.
+  const hasPaidPlan = currentPlan === "devoted" || currentPlan === "patron";
+  const paidLabel = hasPaidPlan ? `Switch to ${tierName}` : `Start ${tierName}`;
   return (
     <form action={startCheckout} className="mt-auto">
       <input type="hidden" name="plan" value={plan} />
       <button type="submit" className={`${baseClass} ${solid}`}>
-        {plan === "free" ? "Switch to free" : `Start ${tierName}`}
+        {plan === "free" ? "Switch to free" : paidLabel}
       </button>
     </form>
   );
