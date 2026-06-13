@@ -49,7 +49,8 @@ export default async function PricingPage({
           return (
             <div
               key={t.id}
-              className={`rounded-3xl p-7 ring-1 flex flex-col ${
+              id={t.id}
+              className={`scroll-mt-24 rounded-3xl p-7 ring-1 flex flex-col ${
                 isCurrent
                   ? "bg-ink-3 ring-gold shadow-xl shadow-black/40"
                   : t.highlight
@@ -77,19 +78,14 @@ export default async function PricingPage({
                 <span className="text-cream-muted">/ month</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm flex-1">
-                {t.features
-                  .filter(
-                    (f) =>
-                      !(f === "Support as a patron" && currentPlan === "patron")
-                  )
-                  .map((f) => (
-                    <li key={f} className="flex gap-2 text-cream-muted">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-gold shrink-0 mt-0.5">
-                        <path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <span>{f}</span>
-                    </li>
-                  ))}
+                {t.features.map((f) => (
+                  <li key={f} className="flex gap-2 text-cream-muted">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-gold shrink-0 mt-0.5">
+                      <path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span>{f}</span>
+                  </li>
+                ))}
               </ul>
 
               <PlanButton

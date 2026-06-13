@@ -57,10 +57,10 @@ export default async function PastorPage({
               </span>
               <FollowButton pastorId={pastor.id} initialFollowing={following} />
               <Link
-                href="/pricing"
-                className="px-4 py-2 rounded-full bg-ink-3 hover:bg-ink-4 text-cream"
+                href="/pricing#patron"
+                className="px-4 py-2 rounded-full bg-gold hover:bg-gold-hot text-ink font-medium transition-colors"
               >
-                Support on Patron
+                Support as a patron
               </Link>
             </div>
           </div>
