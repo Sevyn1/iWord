@@ -79,16 +79,22 @@ export default async function AccountPage() {
           )}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {isPaid ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 text-gold ring-1 ring-gold/40 px-3 py-1 text-xs font-medium">
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 text-gold ring-1 ring-gold/40 px-3 py-1 text-xs font-medium transition hover:bg-gold/25 hover:ring-gold/60"
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="m12 3 2.6 5.27 5.82.85-4.21 4.1 1 5.8L12 16.9l-5.2 2.73 1-5.8-4.2-4.1 5.8-.85L12 3Z" />
                 </svg>
                 iWord+ {planName} member
-              </span>
+              </Link>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-3 text-cream-muted ring-1 ring-line px-3 py-1 text-xs font-medium">
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-1.5 rounded-full bg-ink-3 text-cream-muted ring-1 ring-line px-3 py-1 text-xs font-medium transition hover:text-cream hover:ring-cream-faint"
+              >
                 Free · {planName} plan
-              </span>
+              </Link>
             )}
             <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/15 text-leaf ring-1 ring-leaf/30 px-3 py-1 text-xs font-medium">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
