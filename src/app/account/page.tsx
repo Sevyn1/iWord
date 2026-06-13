@@ -56,6 +56,7 @@ export default async function AccountPage() {
   const initial = (name[0] ?? "?").toUpperCase();
   const plan = (profile?.plan as "free" | "devoted" | "patron" | undefined) ?? "free";
   const isPaid = plan === "devoted" || plan === "patron";
+  const isPatron = plan === "patron";
   const planName = plan === "devoted" ? "Devoted" : plan === "patron" ? "Patron" : "Seeker";
   const billingEnabled = isStripeConfigured();
 
@@ -159,6 +160,46 @@ export default async function AccountPage() {
             </Link>{" "}
             for unlimited streaming.
           </p>
+        </section>
+      )}
+
+      {/* Patron supporter identity */}
+      {isPatron && (
+        <section className="mt-8 rounded-2xl bg-gradient-to-br from-gold/15 to-ink-2 ring-1 ring-gold/30 p-5 sm:p-6">
+          <div className="flex items-center gap-2 text-gold">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="m12 3 2.6 5.27 5.82.85-4.21 4.1 1 5.8L12 16.9l-5.2 2.73 1-5.8-4.2-4.1 5.8-.85L12 3Z" />
+            </svg>
+            <h2 className="font-display text-lg">You&rsquo;re a Patron</h2>
+          </div>
+          <p className="mt-2 text-sm text-cream-muted max-w-prose">
+            Thank you for supporting the work. As a Patron, 70% of your
+            subscription goes to the pastors you follow—{" "}
+            {followed.length > 0
+              ? "the ones below."
+              : "follow a pastor to direct your support."}
+          </p>
+          {followed.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2.5">
+              {followed.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/pastors/${p.slug}`}
+                  className="flex items-center gap-2.5 rounded-full bg-ink-2 ring-1 ring-line pl-1.5 pr-4 py-1.5 hover:bg-ink-3 transition-colors"
+                >
+                  <span
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-cream ring-1 ring-line shrink-0"
+                    style={{
+                      background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
+                    }}
+                  >
+                    {p.initials}
+                  </span>
+                  <span className="text-sm text-cream">{p.name}</span>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       )}
 

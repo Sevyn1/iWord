@@ -59,7 +59,16 @@ export default async function PastorPage({
                 {formatCount(pastor.followers)} followers
               </span>
               <FollowButton pastorId={pastor.id} initialFollowing={following} />
-              {!isPatron && (
+              {isPatron ? (
+                following && (
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gold/15 text-gold ring-1 ring-gold/40 font-medium">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="m12 3 2.6 5.27 5.82.85-4.21 4.1 1 5.8L12 16.9l-5.2 2.73 1-5.8-4.2-4.1 5.8-.85L12 3Z" />
+                    </svg>
+                    You support {pastor.name.split(" ").slice(-1)[0]}
+                  </span>
+                )
+              ) : (
                 <Link
                   href="/pricing#patron"
                   className="px-4 py-2 rounded-full bg-gold hover:bg-gold-hot text-ink font-medium transition-colors"
