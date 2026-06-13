@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/* iWord brand palette
+   Theme: contemplative, modern, reverent. Dark indigo "night vigil" with
+   warm gold "let there be light" accents. */
+:root {
+  --ink:         #0A1029;  /* page background */
+  --ink-2:       #101839;  /* elevated surface */
+  --ink-3:       #18224B;  /* card */
+  --ink-4:       #1F2B5C;  /* hover */
+  --line:        #2A3568;  /* divider / border */
+  --cream:       #F4EFE4;  /* primary text on dark */
+  --cream-muted: #B7B2A2;  /* secondary text */
+  --cream-faint: #6F6C63;  /* tertiary text */
+  --gold:        #E0B265;  /* primary accent */
+  --gold-hot:    #F2C77A;  /* hover */
+  --gold-soft:   #3A2D17;  /* gold-tinted badge bg */
+  --rose:        #C97D6B;  /* secondary accent */
+  --leaf:        #6BA889;  /* success / live */
+}
+
+@theme inline {
+  --color-ink:         var(--ink);
+  --color-ink-2:       var(--ink-2);
+  --color-ink-3:       var(--ink-3);
+  --color-ink-4:       var(--ink-4);
+  --color-line:        var(--line);
+  --color-cream:       var(--cream);
+  --color-cream-muted: var(--cream-muted);
+  --color-cream-faint: var(--cream-faint);
+  --color-gold:        var(--gold);
+  --color-gold-hot:    var(--gold-hot);
+  --color-gold-soft:   var(--gold-soft);
+  --color-rose:        var(--rose);
+  --color-leaf:        var(--leaf);
+  --font-display:      var(--font-fraunces);
+  --font-sans:         var(--font-inter);
+}
+
+html, body {
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--gold); color: var(--ink); }
+
+/* Subtle scripture-paper grain for the hero — animated soft glow */
+.bg-grain {
+  position: relative;
+  background:
+    radial-gradient(60% 50% at 20% 20%, rgba(224,178,101,0.18), transparent 60%),
+    radial-gradient(50% 50% at 80% 70%, rgba(201,125,107,0.12), transparent 60%),
+    radial-gradient(80% 80% at 50% 110%, rgba(107,168,137,0.08), transparent 60%),
+    linear-gradient(180deg, #0A1029 0%, #0F1733 100%);
+  background-size: 200% 200%, 200% 200%, 200% 200%, 100% 100%;
+  animation: drift 22s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0%   { background-position: 0% 0%,   100% 100%, 50% 100%, 0 0; }
+  50%  { background-position: 30% 20%, 70% 80%,   60% 90%,  0 0; }
+  100% { background-position: 10% 10%, 90% 60%,   40% 100%, 0 0; }
+}
+
+/* Page entrance — used by SermonCard with a per-card delay. */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fadeUp 520ms cubic-bezier(0.2, 0.65, 0.2, 1) both;
+}
+
+/* Shimmer used by skeleton placeholders. */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.04) 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Soft pulsing "live" dot for the listening counter. */
+@keyframes livePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(107,168,137,0.55); }
+  50%      { box-shadow: 0 0 0 7px rgba(107,168,137,0); }
+}
+.live-dot {
+  animation: livePulse 1.8s ease-out infinite;
+}
+
+/* Waveform bar pulse when active. */
+@keyframes barPulse {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(1.35); }
+}
+
+/* Range input (audio scrubber) */
+input[type="range"].scrubber {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--line);
+  border-radius: 9999px;
+  outline: none;
+}
+input[type="range"].scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 9999px;
+  background: var(--gold);
+  cursor: pointer;
+  box-shadow: 0 0 0 4px rgba(224,178,101,0.15);
+}
+input[type="range"].scrubber::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 9999px;
+  background: var(--gold);
+  border: none;
+  cursor: pointer;
+}
