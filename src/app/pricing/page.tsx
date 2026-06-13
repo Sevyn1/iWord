@@ -80,7 +80,7 @@ export default async function PricingPage({
                 {t.features
                   .filter(
                     (f) =>
-                      !(f === "Support as patron" && currentPlan === "patron")
+                      !(f === "Support as a patron" && currentPlan === "patron")
                   )
                   .map((f) => (
                     <li key={f} className="flex gap-2 text-cream-muted">

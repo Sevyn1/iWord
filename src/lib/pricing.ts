@@ -32,7 +32,7 @@ export const TIERS: SubscriptionTier[] = [
     tagline: "Support the pastors you love.",
     features: [
       "Everything in Devoted",
-      "Support as patron",
+      "Support as a patron",
       "Early access to new sermons",
       "Private Q&A threads with selected pastors",
     ],
