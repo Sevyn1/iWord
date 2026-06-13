@@ -193,7 +193,7 @@ function StreamLimitModal({
         <p className="text-cream-muted mt-2 text-sm leading-relaxed">
           The free Seeker plan includes {limit} sermons each month. Upgrade to{" "}
           <span className="text-gold">Devoted</span> for unlimited, ad-free
-          streaming — plus downloads and shareable AI excerpts.
+          streaming — plus shareable AI excerpts.
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-3">
           <Link

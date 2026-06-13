@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { TIERS } from "@/lib/pricing";
 import { getCurrentAccount } from "@/lib/account";
-import { startCheckout } from "./actions";
+import { isStripeConfigured } from "@/lib/stripe";
+import { startCheckout, manageBilling } from "./actions";
 
 // Map a pricing tier id to the plan value stored on the profile.
 function tierToPlan(tierId: string): "free" | "devoted" | "patron" {
@@ -17,6 +18,8 @@ export default async function PricingPage({
   const account = await getCurrentAccount();
   const currentPlan = account?.plan ?? null;
   const signedIn = account !== null;
+  const isPaid = currentPlan === "devoted" || currentPlan === "patron";
+  const billingEnabled = isStripeConfigured();
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16">
@@ -27,7 +30,7 @@ export default async function PricingPage({
         </h1>
         <p className="mt-4 text-cream-muted">
           Start free. Upgrade when iWord becomes part of your week. Cancel any
-          time — your downloads are yours to keep.
+          time — you keep access through the end of your billing period.
         </p>
       </header>
 
@@ -106,6 +109,19 @@ export default async function PricingPage({
       <p className="text-center text-xs text-cream-faint mt-10">
         Prices in USD. Secure payments by Stripe. Cancel anytime from your account.
       </p>
+
+      {isPaid && billingEnabled && (
+        <div className="mt-4 text-center">
+          <form action={manageBilling} className="inline">
+            <button
+              type="submit"
+              className="text-sm text-cream-muted hover:text-cream underline underline-offset-2"
+            >
+              Manage billing &amp; invoices
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

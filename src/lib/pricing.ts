@@ -19,7 +19,7 @@ export const TIERS: SubscriptionTier[] = [
     tagline: "For the everyday listener.",
     features: [
       "Unlimited streaming, ad-free",
-      "Download for offline listening",
+      "Continue listening across devices",
       "60-second AI excerpts to share",
       "Personalized weekly digest",
     ],
@@ -32,7 +32,7 @@ export const TIERS: SubscriptionTier[] = [
     tagline: "Support the pastors you love.",
     features: [
       "Everything in Devoted",
-      "Support as a patron",
+      "70% of your subscription goes to the pastors you listen to",
       "Early access to new sermons",
       "Private Q&A threads with selected pastors",
     ],
