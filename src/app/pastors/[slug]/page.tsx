@@ -5,6 +5,7 @@ import { getSermonsByPastor } from "@/lib/sermons";
 import { SermonCard } from "@/components/SermonCard";
 import { FollowButton } from "@/components/FollowButton";
 import { isFollowingPastor } from "@/lib/follows";
+import { getCurrentAccount } from "@/lib/account";
 import { formatCount } from "@/lib/format";
 
 export async function generateStaticParams() {
@@ -23,6 +24,8 @@ export default async function PastorPage({
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
   const following = await isFollowingPastor(pastor.id);
+  const account = await getCurrentAccount();
+  const isPatron = account?.plan === "patron";
 
   return (
     <div>
@@ -56,12 +59,14 @@ export default async function PastorPage({
                 {formatCount(pastor.followers)} followers
               </span>
               <FollowButton pastorId={pastor.id} initialFollowing={following} />
-              <Link
-                href="/pricing#patron"
-                className="px-4 py-2 rounded-full bg-gold hover:bg-gold-hot text-ink font-medium transition-colors"
-              >
-                Support as a patron
-              </Link>
+              {!isPatron && (
+                <Link
+                  href="/pricing#patron"
+                  className="px-4 py-2 rounded-full bg-gold hover:bg-gold-hot text-ink font-medium transition-colors"
+                >
+                  Support as a patron
+                </Link>
+              )}
             </div>
           </div>
         </div>
