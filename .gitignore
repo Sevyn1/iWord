@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local tooling (downloaded binaries, e.g. stripe cli)
+.tools/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
