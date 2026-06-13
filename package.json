@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "upload:audio": "node --env-file=.env.local scripts/upload-audio.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

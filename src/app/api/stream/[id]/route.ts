@@ -9,10 +9,12 @@ import {
   FREE_MONTHLY_STREAMS,
 } from "@/lib/account";
 import { getMonthlyListenedIds } from "@/lib/listens";
+import { getSignedSermonUrl } from "@/lib/storage";
 
-// Audio lives outside `public/` so it can't be fetched directly — every byte is
-// served through this gated handler. The files are bundled into the serverless
-// function via `outputFileTracingIncludes` in next.config.ts.
+// Local fallback audio. In production the gate hands off to object storage via a
+// signed URL (see below); these on-disk copies — kept outside `public/` and
+// bundled via `outputFileTracingIncludes` in next.config.ts — are only used when
+// Supabase Storage isn't configured (e.g. local dev before uploading).
 const AUDIO_DIR = path.join(process.cwd(), "private", "audio");
 
 /**
@@ -63,6 +65,21 @@ export async function GET(
     await recordListen(account.userId, sermon.id);
   }
 
+  const objectKey = path.basename(sermon.audioUrl); // e.g. demo-1.wav
+
+  // Preferred path: hand the listener a short-lived signed URL and redirect, so
+  // object storage serves the bytes (and Range requests) directly — the
+  // serverless function never proxies the audio. The redirect is uncacheable so
+  // each playback re-checks the gate and gets a fresh, expiring URL.
+  const signedUrl = await getSignedSermonUrl(objectKey);
+  if (signedUrl) {
+    return NextResponse.redirect(signedUrl, {
+      status: 307,
+      headers: { "Cache-Control": "private, no-store" },
+    });
+  }
+
+  // Fallback: stream from disk when Storage isn't configured.
   return streamAudio(sermon.audioUrl, range);
 }
 

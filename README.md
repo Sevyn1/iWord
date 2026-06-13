@@ -87,21 +87,37 @@ public/
 - **Fonts** — Fraunces (display) · Inter (UI)
 - **Logo** — the dot of the `i` is a glowing sun: "let there be light" meets "the Word"
 
-## Placeholder audio
+## Sermon audio
 
 The three `private/audio/demo-*.wav` files are short macOS `say` clips so the
 demo plays offline without any cloud dependency. They live **outside** `public/`
-and are served only through the gated `/api/stream/[id]` route (which enforces
-the plan/quota and supports HTTP range requests), so the asset path itself is
-protected and the free streaming cap can't be bypassed by hitting a static URL:
+and are served only through the gated `/api/stream/[id]` route, which enforces
+the plan/quota before handing the listener the audio — so the free streaming cap
+can't be bypassed by hitting a static URL:
 
 ```bash
 say -o /tmp/x.aiff "your script"
 afconvert -f WAVE -d LEI16@22050 -c 1 /tmp/x.aiff private/audio/demo-1.wav
 ```
 
-In production these will be replaced by Opus / AAC HLS streams served from
-Cloudflare R2 (with short-lived signed URLs).
+**Serving (signed URLs vs. local fallback).** When `SUPABASE_SERVICE_ROLE_KEY`
+is set, the stream route mints a short-lived **Supabase Storage signed URL** and
+`307`-redirects to it, so object storage serves the bytes and HTTP range/seek
+directly — the serverless function never proxies audio. Without the service key
+it falls back to streaming the bundled `private/audio/*.wav` from disk (handy for
+local dev). To populate Storage:
+
+```bash
+# 1. add SUPABASE_SERVICE_ROLE_KEY to .env.local (Supabase → Settings → API)
+# 2. run migration 003 (creates the private `sermons` bucket)
+# 3. upload the demo files to the bucket
+npm run upload:audio
+```
+
+For real sermons, swap the demo clips for Opus / AAC stored in the same private
+bucket (or Cloudflare R2) and keep the signed-URL gate — only the upload source
+changes.
+
 
 ## Next milestones
 
