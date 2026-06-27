@@ -6,6 +6,7 @@ import { SermonCard } from "@/components/SermonCard";
 import { FollowButton } from "@/components/FollowButton";
 import { isFollowingPastor } from "@/lib/follows";
 import { getCurrentAccount } from "@/lib/account";
+import { getChurchForPastor } from "@/lib/churches";
 import { formatCount } from "@/lib/format";
 
 export async function generateStaticParams() {
@@ -26,6 +27,7 @@ export default async function PastorPage({
   const following = await isFollowingPastor(pastor.id);
   const account = await getCurrentAccount();
   const isPatron = account?.plan === "patron";
+  const church = getChurchForPastor(pastor);
 
   return (
     <div>
@@ -51,7 +53,17 @@ export default async function PastorPage({
               {pastor.name}
             </h1>
             <p className="text-cream-muted mt-1">
-              {pastor.church} · {pastor.location}
+              {church ? (
+                <Link
+                  href={`/churches/${church.slug}`}
+                  className="text-cream hover:text-gold underline-offset-2 hover:underline transition-colors"
+                >
+                  {pastor.church}
+                </Link>
+              ) : (
+                pastor.church
+              )}{" "}
+              · {pastor.location}
             </p>
             <p className="mt-3 text-cream-muted max-w-2xl">{pastor.bio}</p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
