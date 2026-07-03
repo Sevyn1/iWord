@@ -44,16 +44,15 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ambient, living backdrop for the whole site — a bold, vibrant mesh gradient
-   over a rich indigo/violet base so every page has depth and colour. */
+/* Ambient, living backdrop for the whole site — a warm "candlelit cathedral at
+   night" wash: deep midnight navy lifted by soft gold light and a quiet teal. */
 body {
   background:
-    radial-gradient(1200px 800px at 0% -10%,   rgba(232,188,110,0.42), transparent 60%),
-    radial-gradient(1300px 900px at 100% 0%,   rgba(139,110,246,0.55), transparent 58%),
-    radial-gradient(1100px 900px at 50% 120%,  rgba(214,132,111,0.40), transparent 62%),
-    radial-gradient(900px 700px at 88% 92%,    rgba(116,182,148,0.30), transparent 60%),
-    radial-gradient(800px 600px at 12% 88%,    rgba(139,110,246,0.28), transparent 62%),
-    linear-gradient(160deg, #141C52 0%, #1B1746 40%, #221A55 68%, #12163F 100%);
+    radial-gradient(1200px 820px at 8% -8%,   rgba(232,188,110,0.30), transparent 58%),
+    radial-gradient(1100px 900px at 100% 6%,  rgba(96,140,168,0.26),  transparent 60%),
+    radial-gradient(1000px 820px at 50% 120%, rgba(232,188,110,0.14), transparent 62%),
+    radial-gradient(820px 640px at 90% 96%,   rgba(116,182,148,0.16), transparent 60%),
+    linear-gradient(165deg, #0B1330 0%, #0E1838 46%, #0C1430 100%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
