@@ -16,7 +16,7 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const church = getChurchBySlug(slug);
-  return { title: church ? `${church.name} — iWord` : "Church — iWord" };
+  return { title: church ? church.name : "Church" };
 }
 
 export default async function ChurchPage({

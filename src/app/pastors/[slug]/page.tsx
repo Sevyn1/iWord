@@ -13,6 +13,32 @@ export async function generateStaticParams() {
   return PASTORS.map((p) => ({ slug: p.slug }));
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const pastor = getPastorBySlug(slug);
+  if (!pastor) return { title: "Pastor not found" };
+  const description = `${pastor.title} at ${pastor.church}, ${pastor.location}. ${pastor.bio}`;
+  return {
+    title: pastor.name,
+    description,
+    openGraph: {
+      type: "profile",
+      title: `${pastor.name} — ${pastor.church}`,
+      description,
+      url: `/pastors/${pastor.slug}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${pastor.name} — ${pastor.church}`,
+      description,
+    },
+  };
+}
+
 export default async function PastorPage({
   params,
 }: {

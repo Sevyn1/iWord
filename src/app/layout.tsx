@@ -9,6 +9,7 @@ import { BillingAlert } from "@/components/BillingAlert";
 import { UserMenu } from "@/components/UserMenu";
 import { getCurrentAccount, FREE_MONTHLY_STREAMS } from "@/lib/account";
 import { getMonthlyListenedIds } from "@/lib/listens";
+import { SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION, SITE_URL } from "@/lib/site";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,9 +25,26 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "iWord — Gospel messages, gathered with care",
-  description:
-    "Listen to sermons from beloved pastors around the world. Subscribe, follow, and carry the message with you wherever you go.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    template: `%s — ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default async function RootLayout({

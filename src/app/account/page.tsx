@@ -11,7 +11,7 @@ import { signOut } from "@/app/auth/actions";
 import { isStripeConfigured } from "@/lib/stripe";
 import { manageBilling } from "@/app/pricing/actions";
 
-export const metadata = { title: "Your account — iWord" };
+export const metadata = { title: "Your account" };
 
 export default async function AccountPage() {
   const supabase = await createClient();

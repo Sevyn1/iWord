@@ -4,6 +4,12 @@ import { PASTORS } from "@/lib/pastors";
 import { SermonCard } from "@/components/SermonCard";
 import { BrowseFilters } from "./BrowseFilters";
 
+export const metadata = {
+  title: "Sermons",
+  description:
+    "Browse gospel messages from pastors around the world. Filter by topic, pastor, and what's trending this week.",
+};
+
 type SearchParams = {
   sort?: string;
   pastor?: string;

@@ -15,6 +15,30 @@ export async function generateStaticParams() {
   return SERMONS.map((s) => ({ id: s.slug }));
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const sermon = getSermonBySlug(id);
+  if (!sermon) return { title: "Sermon not found" };
+  const pastor = getPastorById(sermon.pastorId);
+  const title = pastor ? `${sermon.title} — ${pastor.name}` : sermon.title;
+  const description = sermon.summary;
+  return {
+    title: sermon.title,
+    description,
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url: `/sermons/${sermon.slug}`,
+    },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
+
 export default async function SermonDetailPage({
   params,
 }: {

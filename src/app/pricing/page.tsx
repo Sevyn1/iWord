@@ -4,6 +4,12 @@ import { getCurrentAccount } from "@/lib/account";
 import { isStripeConfigured } from "@/lib/stripe";
 import { startCheckout, manageBilling } from "./actions";
 
+export const metadata = {
+  title: "Plans",
+  description:
+    "Start free, then upgrade when iWord becomes part of your week. Devoted and Patron plans unlock unlimited, ad-free listening.",
+};
+
 // Map a pricing tier id to the plan value stored on the profile.
 function tierToPlan(tierId: string): "free" | "devoted" | "patron" {
   return tierId === "seeker" ? "free" : (tierId as "devoted" | "patron");

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — iWord",
+  title: "Privacy Policy",
   description:
     "How iWord collects, uses, and protects your personal information, and the choices you have.",
 };

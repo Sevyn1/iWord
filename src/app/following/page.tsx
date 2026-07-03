@@ -7,7 +7,7 @@ import { PASTORS } from "@/lib/pastors";
 import { SERMONS, getSermonById } from "@/lib/sermons";
 import { SermonCard } from "@/components/SermonCard";
 
-export const metadata = { title: "Following — iWord" };
+export const metadata = { title: "Following" };
 
 export default async function FollowingPage() {
   const supabase = await createClient();

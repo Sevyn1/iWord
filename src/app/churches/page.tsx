@@ -4,7 +4,7 @@ import { CHURCHES, getPastorsByChurch } from "@/lib/churches";
 import { formatCount } from "@/lib/format";
 import { ChurchSearch } from "./ChurchSearch";
 
-export const metadata = { title: "Churches — iWord" };
+export const metadata = { title: "Churches" };
 
 export default async function ChurchesPage({
   searchParams,
