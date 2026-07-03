@@ -28,21 +28,23 @@ export default async function PastorPage({
   const account = await getCurrentAccount();
   const isPatron = account?.plan === "patron";
   const church = getChurchForPastor(pastor);
+  // A pastor inherits their church's colour identity so the two pages match.
+  const hue = church?.hue ?? pastor.hue;
 
   return (
     <div>
-      {/* Header */}
+      {/* Header — themed by the pastor's church */}
       <section
-        className="border-b border-line"
+        className="relative border-b border-line overflow-hidden"
         style={{
-          background: `linear-gradient(180deg, hsl(${pastor.hue},45%,18%) 0%, var(--ink) 100%)`,
+          background: `radial-gradient(90% 130% at 100% 0%, hsl(${(hue + 35) % 360} 62% 32% / 0.55), transparent 70%), linear-gradient(165deg, hsl(${hue} 52% 24%) 0%, hsl(${hue} 44% 15%) 55%, var(--ink) 100%)`,
         }}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 flex flex-col sm:flex-row items-start sm:items-end gap-6">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 flex flex-col sm:flex-row items-start sm:items-end gap-6">
           <div
-            className="w-28 h-28 sm:w-36 sm:h-36 rounded-full flex items-center justify-center text-3xl font-semibold text-cream ring-2 ring-line shrink-0"
+            className="w-28 h-28 sm:w-36 sm:h-36 rounded-full flex items-center justify-center text-3xl font-semibold text-cream ring-2 ring-white/15 shrink-0 shadow-xl shadow-black/40"
             style={{
-              background: `linear-gradient(135deg, hsl(${pastor.hue},65%,38%), hsl(${(pastor.hue + 30) % 360},70%,22%))`,
+              background: `linear-gradient(135deg, hsl(${hue},68%,42%), hsl(${(hue + 30) % 360},72%,24%))`,
             }}
           >
             {pastor.initials}
@@ -56,8 +58,15 @@ export default async function PastorPage({
               {church ? (
                 <Link
                   href={`/churches/${church.slug}`}
-                  className="text-cream hover:text-gold underline-offset-2 hover:underline transition-colors"
+                  className="inline-flex items-center gap-1.5 text-cream hover:text-gold underline-offset-2 hover:underline transition-colors"
                 >
+                  <span
+                    className="w-4 h-4 rounded-[5px] shrink-0 ring-1 ring-white/20"
+                    style={{
+                      background: `linear-gradient(135deg, hsl(${church.hue},68%,44%), hsl(${(church.hue + 30) % 360},72%,26%))`,
+                    }}
+                    aria-hidden="true"
+                  />
                   {pastor.church}
                 </Link>
               ) : (
@@ -67,8 +76,9 @@ export default async function PastorPage({
             </p>
             <p className="mt-3 text-cream-muted max-w-2xl">{pastor.bio}</p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="text-sm text-cream-muted">
-                {formatCount(pastor.followers)} followers
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 ring-1 ring-white/10 px-3.5 py-1.5 text-sm text-cream">
+                <span className="font-semibold">{formatCount(pastor.followers)}</span>
+                <span className="text-cream-muted">followers</span>
               </span>
               <FollowButton pastorId={pastor.id} initialFollowing={following} />
               {isPatron ? (
