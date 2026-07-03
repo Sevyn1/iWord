@@ -188,7 +188,7 @@ export default async function AccountPage() {
                   className="flex items-center gap-2.5 rounded-full bg-ink-2 ring-1 ring-line pl-1.5 pr-4 py-1.5 hover:bg-ink-3 transition-colors"
                 >
                   <span
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-cream ring-1 ring-line shrink-0"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white ring-1 ring-line shrink-0"
                     style={{
                       background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
                     }}
@@ -234,7 +234,7 @@ export default async function AccountPage() {
                 className="flex items-center gap-4 rounded-2xl bg-ink-2 ring-1 ring-line p-4 hover:bg-ink-3 transition-colors"
               >
                 <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-sm font-semibold text-cream ring-1 ring-line shrink-0"
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-sm font-semibold text-white ring-1 ring-line shrink-0"
                   style={{
                     background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
                   }}

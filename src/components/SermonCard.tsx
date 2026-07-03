@@ -74,7 +74,7 @@ export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
         {pastor && (
           <Link
             href={`/pastors/${pastor.slug}`}
-            className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-cream ring-1 ring-line hover:ring-gold transition"
+            className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-white ring-1 ring-line hover:ring-gold transition"
             style={{
               background: `linear-gradient(135deg, hsl(${pastor.hue},60%,32%), hsl(${(pastor.hue + 30) % 360},65%,18%))`,
             }}

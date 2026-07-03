@@ -72,12 +72,12 @@ export function Thumbnail({
       />
       <div className="absolute inset-0 p-4 flex flex-col justify-end">
         {!hideText && label && (
-          <span className="text-[10px] uppercase tracking-[0.18em] text-cream/70 mb-1">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-white/70 mb-1">
             {label}
           </span>
         )}
         {!hideText && (
-          <span className={`font-display ${titleSize} leading-tight text-cream drop-shadow-sm`}>
+          <span className={`font-display ${titleSize} leading-tight text-white drop-shadow-sm`}>
             {title}
           </span>
         )}

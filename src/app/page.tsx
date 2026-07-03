@@ -120,7 +120,7 @@ export default async function HomePage() {
                 <div className="absolute -inset-2 rounded-2xl bg-gradient-to-br from-gold/30 via-rose/10 to-transparent blur-2xl opacity-60 group-hover:opacity-90 transition-opacity" aria-hidden />
                 <div className="relative rounded-2xl overflow-hidden ring-1 ring-line shadow-2xl shadow-black/50 group-hover:shadow-gold/10 transition-shadow">
                   <Thumbnail title={hero.title} hue={hero.hue} label={hero.scripture} hideText size="lg" className="!ring-0 !rounded-none transition-transform duration-700 group-hover:scale-[1.03]" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
                   <div className="absolute left-5 top-5 flex items-center gap-2">
                     <span className="px-2.5 py-1 rounded-full bg-gold text-ink text-[10px] uppercase tracking-[0.18em] font-medium">
                       Trending #1
@@ -130,7 +130,7 @@ export default async function HomePage() {
                     {heroPastor && (
                       <div className="flex items-center gap-3 mb-3">
                         <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold text-cream ring-1 ring-cream/30"
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold text-white ring-1 ring-white/30"
                           style={{
                             background: `linear-gradient(135deg, hsl(${heroPastor.hue},65%,38%), hsl(${(heroPastor.hue + 30) % 360},70%,22%))`,
                           }}
@@ -138,15 +138,15 @@ export default async function HomePage() {
                           {heroPastor.initials}
                         </div>
                         <div className="text-sm">
-                          <div className="text-cream font-medium">{heroPastor.name}</div>
-                          <div className="text-cream-muted text-xs">{heroPastor.church}</div>
+                          <div className="text-white font-medium">{heroPastor.name}</div>
+                          <div className="text-white/70 text-xs">{heroPastor.church}</div>
                         </div>
                       </div>
                     )}
                     <div className="flex items-end justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="text-[10px] uppercase tracking-[0.18em] text-gold/90 mb-1">{hero.scripture}</div>
-                        <div className="font-display text-2xl sm:text-3xl text-cream leading-tight">{hero.title}</div>
+                        <div className="text-[10px] uppercase tracking-[0.18em] text-[#EBC67A] mb-1">{hero.scripture}</div>
+                        <div className="font-display text-2xl sm:text-3xl text-white leading-tight">{hero.title}</div>
                       </div>
                       <span className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-full bg-gold text-ink group-hover:bg-gold-hot transition-colors shadow-lg shadow-black/40">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -229,7 +229,7 @@ export default async function HomePage() {
                   aria-hidden
                 />
                 <div
-                  className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center text-xl font-semibold text-cream ring-1 ring-line group-hover:ring-gold transition shadow-lg shadow-black/30"
+                  className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center text-xl font-semibold text-white ring-1 ring-line group-hover:ring-gold transition shadow-lg shadow-black/30"
                   style={{
                     background: `linear-gradient(135deg, hsl(${p.hue},60%,32%), hsl(${(p.hue + 35) % 360},65%,18%))`,
                   }}

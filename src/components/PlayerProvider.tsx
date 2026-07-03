@@ -178,7 +178,7 @@ function StreamLimitModal({
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-ink/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
       <div className="relative w-full max-w-md rounded-3xl bg-ink-2 ring-1 ring-line p-7 shadow-2xl shadow-black/50">
         <div className="w-12 h-12 rounded-full bg-gold/15 text-gold ring-1 ring-gold/40 flex items-center justify-center mb-4">

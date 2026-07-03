@@ -91,14 +91,14 @@ export default async function ChurchesPage({
                   <path d="M12 2v20M5 9h14M8 22h8" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
                 {c.denomination && (
-                  <span className="absolute right-4 top-4 rounded-full bg-black/25 backdrop-blur-sm px-2.5 py-1 text-[11px] font-medium text-cream/90 ring-1 ring-white/10">
+                  <span className="absolute right-4 top-4 rounded-full bg-black/25 backdrop-blur-sm px-2.5 py-1 text-[11px] font-medium text-white/90 ring-1 ring-white/15">
                     {c.denomination}
                   </span>
                 )}
               </div>
               <div className="px-5 pb-5 -mt-10 flex flex-col flex-1">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-semibold text-cream ring-2 ring-ink-2 shadow-lg shadow-black/40"
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-semibold text-white ring-2 ring-ink-2 shadow-lg shadow-black/40"
                   style={{
                     background: `linear-gradient(135deg, hsl(${c.hue},65%,38%), hsl(${(c.hue + 30) % 360},70%,22%))`,
                   }}
@@ -125,7 +125,7 @@ export default async function ChurchesPage({
                       {pastors.slice(0, 3).map((p) => (
                         <div
                           key={p.id}
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-cream ring-2 ring-ink-2"
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white ring-2 ring-ink-2"
                           style={{
                             background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
                           }}

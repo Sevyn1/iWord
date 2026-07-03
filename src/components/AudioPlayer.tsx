@@ -52,7 +52,7 @@ export function AudioPlayer({ sermon }: Props) {
       <div className="flex items-center gap-3">
         {pastor && (
           <div
-            className="hidden sm:flex w-12 h-12 shrink-0 rounded-full items-center justify-center text-xs font-semibold text-cream ring-1 ring-line"
+            className="hidden sm:flex w-12 h-12 shrink-0 rounded-full items-center justify-center text-xs font-semibold text-white ring-1 ring-line"
             style={{
               background: `linear-gradient(135deg, hsl(${pastor.hue},60%,32%), hsl(${(pastor.hue + 30) % 360},65%,18%))`,
             }}

@@ -48,7 +48,7 @@ export default async function SermonDetailPage({
             <div className="mt-4 flex items-center gap-3">
               <Link
                 href={`/pastors/${pastor.slug}`}
-                className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold text-cream ring-1 ring-line"
+                className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold text-white ring-1 ring-line"
                 style={{
                   background: `linear-gradient(135deg, hsl(${pastor.hue},60%,32%), hsl(${(pastor.hue + 30) % 360},65%,18%))`,
                 }}

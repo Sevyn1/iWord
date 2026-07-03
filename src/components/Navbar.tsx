@@ -150,7 +150,7 @@ function MobileMenu({
         type="button"
         aria-label="Close menu"
         onClick={onClose}
-        className="absolute inset-0 bg-ink/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
       />
       <div className="relative bg-ink border-b border-line px-4 sm:px-6 pt-4 pb-6 flex flex-col gap-4 max-h-[calc(100dvh-4rem)] overflow-y-auto">
         <SearchStub onSubmit={onClose} />

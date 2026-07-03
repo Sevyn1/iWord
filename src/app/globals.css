@@ -1,22 +1,23 @@
 @import "tailwindcss";
 
-/* iWord brand palette
-   Theme: contemplative, modern, reverent. Dark indigo "night vigil" with
-   warm gold "let there be light" accents. */
+/* iWord brand palette — LIGHT EDITORIAL
+   Warm off-white "printed page" with ink text and deep-gold accents.
+   NOTE: token names are historical. --ink* are now LIGHT surfaces and
+   --cream* are now DARK text, so existing utility classes flip automatically. */
 :root {
-  --ink:         #0C1330;  /* page background */
-  --ink-2:       #141E47;  /* elevated surface */
-  --ink-3:       #1D2957;  /* card */
-  --ink-4:       #26336A;  /* hover */
-  --line:        #33407A;  /* divider / border */
-  --cream:       #F6F1E7;  /* primary text on dark */
-  --cream-muted: #C2BCAB;  /* secondary text */
-  --cream-faint: #837F73;  /* tertiary text */
-  --gold:        #E8BC6E;  /* primary accent */
-  --gold-hot:    #F7CD82;  /* hover */
-  --gold-soft:   #40321A;  /* gold-tinted badge bg */
-  --rose:        #D2846F;  /* secondary accent */
-  --leaf:        #74B694;  /* success / live */
+  --ink:         #F7F3EA;  /* page background (warm paper) */
+  --ink-2:       #FFFFFF;  /* elevated surface / card */
+  --ink-3:       #FBF8F1;  /* card */
+  --ink-4:       #F0E9DA;  /* hover */
+  --line:        #E5DCC9;  /* divider / border */
+  --cream:       #1B2138;  /* primary text (ink) */
+  --cream-muted: #55596B;  /* secondary text */
+  --cream-faint: #918D80;  /* tertiary text */
+  --gold:        #B07D28;  /* primary accent (deep gold, readable on paper) */
+  --gold-hot:    #8F6417;  /* hover */
+  --gold-soft:   #F3E7C8;  /* gold-tinted badge bg */
+  --rose:        #BB5A40;  /* secondary accent (terracotta) */
+  --leaf:        #3C8A61;  /* success / live */
 }
 
 @theme inline {
@@ -44,31 +45,30 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ambient, living backdrop for the whole site — a warm "candlelit cathedral at
-   night" wash: deep midnight navy lifted by soft gold light and a quiet teal. */
+/* Ambient, living backdrop for the whole site — a light editorial "printed
+   page" wash: warm paper lifted by faint gold and blush light. */
 body {
   background:
-    radial-gradient(1200px 820px at 8% -8%,   rgba(232,188,110,0.30), transparent 58%),
-    radial-gradient(1100px 900px at 100% 6%,  rgba(96,140,168,0.26),  transparent 60%),
-    radial-gradient(1000px 820px at 50% 120%, rgba(232,188,110,0.14), transparent 62%),
-    radial-gradient(820px 640px at 90% 96%,   rgba(116,182,148,0.16), transparent 60%),
-    linear-gradient(165deg, #0B1330 0%, #0E1838 46%, #0C1430 100%);
+    radial-gradient(1200px 820px at 6% -8%,   rgba(176,125,40,0.10),  transparent 58%),
+    radial-gradient(1100px 900px at 100% 4%,  rgba(187,90,64,0.07),   transparent 60%),
+    radial-gradient(1000px 820px at 50% 120%, rgba(60,138,97,0.06),   transparent 62%),
+    linear-gradient(170deg, #FAF6EE 0%, #F5F0E4 55%, #F1EBDD 100%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
   min-height: 100vh;
 }
 
-::selection { background: var(--gold); color: var(--ink); }
+::selection { background: var(--gold); color: #FFFFFF; }
 
-/* Subtle scripture-paper grain for the hero — animated soft glow */
+/* Warm paper hero backdrop with soft gold + blush light. */
 .bg-grain {
   position: relative;
   background:
-    radial-gradient(60% 50% at 20% 20%, rgba(232,188,110,0.20), transparent 60%),
-    radial-gradient(50% 50% at 80% 70%, rgba(210,132,111,0.14), transparent 60%),
-    radial-gradient(80% 80% at 50% 110%, rgba(116,182,148,0.10), transparent 60%),
-    linear-gradient(180deg, #0C1330 0%, #131E45 100%);
+    radial-gradient(60% 50% at 20% 20%, rgba(176,125,40,0.14), transparent 60%),
+    radial-gradient(50% 50% at 80% 70%, rgba(187,90,64,0.10), transparent 60%),
+    radial-gradient(80% 80% at 50% 110%, rgba(60,138,97,0.08), transparent 60%),
+    linear-gradient(180deg, #FBF8F1 0%, #F4EEE0 100%);
   background-size: 200% 200%, 200% 200%, 200% 200%, 100% 100%;
   animation: drift 22s ease-in-out infinite alternate;
 }
@@ -95,9 +95,9 @@ body {
 }
 .shimmer {
   background: linear-gradient(90deg,
-    rgba(255,255,255,0.04) 0%,
-    rgba(255,255,255,0.10) 50%,
-    rgba(255,255,255,0.04) 100%);
+    rgba(27,33,56,0.04) 0%,
+    rgba(27,33,56,0.09) 50%,
+    rgba(27,33,56,0.04) 100%);
   background-size: 800px 100%;
   animation: shimmer 1.6s linear infinite;
 }
