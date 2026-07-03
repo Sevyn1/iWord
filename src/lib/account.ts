@@ -26,6 +26,10 @@ type Account = {
   userId: string;
   email: string;
   plan: Plan;
+  /** Raw Stripe subscription status (e.g. "active", "past_due"), if known. */
+  stripeStatus: string | null;
+  /** True when a paid member's latest charge failed and is being retried. */
+  pastDue: boolean;
 };
 
 /**
@@ -43,11 +47,13 @@ export async function getCurrentAccount(): Promise<Account | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("plan")
+    .select("plan, stripe_status")
     .eq("id", user.id)
     .single();
 
   const plan = (profile?.plan as Plan | undefined) ?? "free";
+  const stripeStatus = (profile?.stripe_status as string | undefined) ?? null;
+  const pastDue = isPaidPlan(plan) && stripeStatus === "past_due";
 
-  return { userId: user.id, email: user.email ?? "", plan };
+  return { userId: user.id, email: user.email ?? "", plan, stripeStatus, pastDue };
 }

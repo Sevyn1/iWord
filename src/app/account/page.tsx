@@ -34,7 +34,7 @@ export default async function AccountPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, location, email, plan")
+    .select("full_name, location, email, plan, stripe_status")
     .eq("id", user.id)
     .single();
 
@@ -57,6 +57,7 @@ export default async function AccountPage() {
   const plan = (profile?.plan as "free" | "devoted" | "patron" | undefined) ?? "free";
   const isPaid = plan === "devoted" || plan === "patron";
   const isPatron = plan === "patron";
+  const pastDue = isPaid && profile?.stripe_status === "past_due";
   const planName = plan === "devoted" ? "Devoted" : plan === "patron" ? "Patron" : "Seeker";
   const billingEnabled = isStripeConfigured();
 
@@ -104,6 +105,14 @@ export default async function AccountPage() {
               </svg>
               Subscribed to the weekly digest
             </span>
+            {pastDue && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose/15 text-rose ring-1 ring-rose/40 px-3 py-1 text-xs font-medium">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 9v4m0 4h.01M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Payment overdue
+              </span>
+            )}
             {isPaid && billingEnabled ? (
               <form action={manageBilling}>
                 <button

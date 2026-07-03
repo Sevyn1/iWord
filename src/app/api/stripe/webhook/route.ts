@@ -62,6 +62,21 @@ export async function POST(request: Request) {
         await syncSubscription(stripe, subscription, null);
         break;
       }
+      case "invoice.payment_failed":
+      case "invoice.payment_succeeded":
+      case "invoice.paid": {
+        // A renewal (or first) charge failed or recovered. Re-sync from the
+        // subscription so the profile reflects `past_due` (keeps access during
+        // Stripe's retry window) or returns to `active` once the card clears.
+        const invoice = event.data.object;
+        const subscriptionId = subscriptionIdFromInvoice(invoice);
+        if (subscriptionId) {
+          const subscription =
+            await stripe.subscriptions.retrieve(subscriptionId);
+          await syncSubscription(stripe, subscription, null);
+        }
+        break;
+      }
       default:
         // Ignore unrelated events.
         break;
@@ -76,6 +91,32 @@ export async function POST(request: Request) {
 
 /** Higher rank wins when a customer briefly holds more than one subscription. */
 const PLAN_RANK: Record<Plan, number> = { free: 0, devoted: 1, patron: 2 };
+
+/**
+ * Statuses that still grant access. `past_due` is included on purpose: when a
+ * renewal charge fails, Stripe keeps the subscription `past_due` and retries
+ * for its dunning window, so the member keeps their plan (and sees a "update
+ * your card" banner) rather than losing access on the first failed charge.
+ */
+const ENTITLED_STATUSES = new Set<Stripe.Subscription.Status>([
+  "active",
+  "trialing",
+  "past_due",
+]);
+
+/**
+ * Extract the subscription id an invoice was generated for. In recent Stripe
+ * API versions this lives under `invoice.parent.subscription_details`.
+ */
+function subscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
+  const parent = invoice.parent;
+  if (parent?.type === "subscription_details" && parent.subscription_details) {
+    const sub = parent.subscription_details.subscription;
+    if (!sub) return null;
+    return typeof sub === "string" ? sub : sub.id;
+  }
+  return null;
+}
 
 /**
  * Resolve a member's effective plan from *all* their active subscriptions
@@ -100,10 +141,16 @@ async function resolvePlanForCustomer(
   };
 
   for (const sub of subs.data) {
-    const isActive = sub.status === "active" || sub.status === "trialing";
-    if (!isActive) continue;
+    if (!ENTITLED_STATUSES.has(sub.status)) continue;
     const plan = planForPriceId(sub.items.data[0]?.price?.id ?? null) ?? "free";
-    if (PLAN_RANK[plan] > PLAN_RANK[best.plan]) {
+    // Higher tier wins; at equal tier, prefer a healthy (non-past_due) sub so a
+    // member with one good and one failing subscription reads as active.
+    const better =
+      PLAN_RANK[plan] > PLAN_RANK[best.plan] ||
+      (PLAN_RANK[plan] === PLAN_RANK[best.plan] &&
+        best.status === "past_due" &&
+        sub.status !== "past_due");
+    if (better) {
       best = { plan, subscriptionId: sub.id, status: sub.status };
     }
   }

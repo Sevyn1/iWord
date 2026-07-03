@@ -5,6 +5,7 @@ import { PlayerProvider } from "@/components/PlayerProvider";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MiniPlayer } from "@/components/MiniPlayer";
+import { BillingAlert } from "@/components/BillingAlert";
 import { UserMenu } from "@/components/UserMenu";
 import { getCurrentAccount, FREE_MONTHLY_STREAMS } from "@/lib/account";
 import { getMonthlyListenedIds } from "@/lib/listens";
@@ -51,6 +52,7 @@ export default async function RootLayout({
             mobileUserSlot={<UserMenu variant="mobile" />}
             plan={account?.plan ?? null}
           />
+          {account?.pastDue && <BillingAlert plan={account.plan} />}
           <main className="flex-1 pb-24">{children}</main>
           <Footer />
           <MiniPlayer />
