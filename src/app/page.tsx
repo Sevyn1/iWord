@@ -118,7 +118,7 @@ export default async function HomePage() {
             >
               <div className="relative">
                 <div className="absolute -inset-2 rounded-2xl bg-gradient-to-br from-gold/30 via-rose/10 to-transparent blur-2xl opacity-60 group-hover:opacity-90 transition-opacity" aria-hidden />
-                <div className="relative rounded-2xl overflow-hidden ring-1 ring-line shadow-2xl shadow-black/50 group-hover:shadow-gold/10 transition-shadow">
+                <div className="relative rounded-2xl overflow-hidden ring-1 ring-line shadow-xl shadow-black/20 group-hover:shadow-2xl group-hover:shadow-black/25 transition-shadow">
                   <Thumbnail title={hero.title} hue={hero.hue} label={hero.scripture} hideText size="lg" className="!ring-0 !rounded-none transition-transform duration-700 group-hover:scale-[1.03]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
                   <div className="absolute left-5 top-5 flex items-center gap-2">
@@ -229,7 +229,7 @@ export default async function HomePage() {
                   aria-hidden
                 />
                 <div
-                  className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center text-xl font-semibold text-white ring-1 ring-line group-hover:ring-gold transition shadow-lg shadow-black/30"
+                  className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center text-xl font-semibold text-white ring-1 ring-line group-hover:ring-gold transition shadow-md shadow-black/10"
                   style={{
                     background: `linear-gradient(135deg, hsl(${p.hue},60%,32%), hsl(${(p.hue + 35) % 360},65%,18%))`,
                   }}

@@ -27,7 +27,7 @@ export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
     >
       <div className="relative transition-transform duration-300 ease-out group-hover:-translate-y-0.5">
         <Link href={`/sermons/${sermon.slug}`} aria-label={sermon.title} className="block">
-          <div className="relative rounded-xl overflow-hidden ring-1 ring-line group-hover:ring-gold/40 transition-shadow shadow-md shadow-black/30 group-hover:shadow-xl group-hover:shadow-gold/10">
+          <div className="relative rounded-xl overflow-hidden ring-1 ring-line group-hover:ring-gold/40 transition-shadow shadow-sm shadow-black/10 group-hover:shadow-lg group-hover:shadow-black/15">
             <Thumbnail
               title={sermon.title}
               hue={sermon.hue}

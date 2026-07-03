@@ -48,7 +48,7 @@ export function AudioPlayer({ sermon }: Props) {
   };
 
   return (
-    <div className="rounded-2xl bg-gradient-to-b from-ink-3 to-ink-2 ring-1 ring-line p-5 sm:p-6 shadow-xl shadow-black/30">
+    <div className="rounded-2xl bg-gradient-to-b from-ink-3 to-ink-2 ring-1 ring-line p-5 sm:p-6 shadow-lg shadow-black/10">
       <div className="flex items-center gap-3">
         {pastor && (
           <div
