@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Fraunces } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { PlayerProvider } from "@/components/PlayerProvider";
 import { Navbar } from "@/components/Navbar";
@@ -75,6 +77,8 @@ export default async function RootLayout({
           <Footer />
           <MiniPlayer />
         </PlayerProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
