@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { getStripe, planForPriceId } from "@/lib/stripe";
+import { getStripe, getStripeWebhookSecret, planForPriceId } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Plan } from "@/lib/account";
 
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: Request) {
   const stripe = getStripe();
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = getStripeWebhookSecret();
   if (!stripe || !webhookSecret) {
     return NextResponse.json({ error: "billing_unconfigured" }, { status: 503 });
   }
