@@ -1,7 +1,16 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { safeNextPath } from "@/lib/redirect";
 
-export default function CheckEmailPage() {
+export default async function CheckEmailPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next: nextParam } = await searchParams;
+  const next = safeNextPath(nextParam);
+  const signInHref = next !== "/" ? `/auth/sign-in?next=${encodeURIComponent(next)}` : "/auth/sign-in";
+
   return (
     <div className="mx-auto max-w-md px-4 sm:px-6 py-20">
       <div className="text-center mb-8">
@@ -20,7 +29,7 @@ export default function CheckEmailPage() {
           account, then come back here to sign in.
         </p>
         <Link
-          href="/auth/sign-in"
+          href={signInHref}
           className="mt-6 inline-flex items-center px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot transition-colors"
         >
           Go to sign in

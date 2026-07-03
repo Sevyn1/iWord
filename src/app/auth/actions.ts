@@ -63,7 +63,7 @@ export async function signUp(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/auth/check-email");
+  redirect(withNext("/auth/check-email", next));
 }
 
 export async function signIn(formData: FormData) {
