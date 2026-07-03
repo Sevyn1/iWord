@@ -17,7 +17,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
  */
 
 /** Distinct sermons a signed-out (anonymous) visitor may stream per month. */
-export const ANON_MONTHLY_STREAMS = 3;
+export const ANON_MONTHLY_STREAMS = 1;
 
 /** Sliding-window rate limit: max stream starts per IP within the window. */
 export const RATE_LIMIT_MAX = 30;
