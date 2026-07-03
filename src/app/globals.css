@@ -44,6 +44,20 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Ambient, living backdrop for the whole site — soft colour washes over a
+   deep indigo base so no page ever reads as a flat, dead rectangle. */
+body {
+  background:
+    radial-gradient(1000px 700px at 6% -6%,   rgba(232,188,110,0.20), transparent 55%),
+    radial-gradient(1100px 780px at 106% 4%,  rgba(132,112,236,0.26), transparent 55%),
+    radial-gradient(900px 820px at 50% 116%,  rgba(214,132,111,0.18), transparent 60%),
+    radial-gradient(700px 520px at 78% 88%,   rgba(116,182,148,0.12), transparent 60%),
+    linear-gradient(180deg, #0A1030 0%, #111A46 48%, #0A1030 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
 ::selection { background: var(--gold); color: var(--ink); }
 
 /* Subtle scripture-paper grain for the hero — animated soft glow */
