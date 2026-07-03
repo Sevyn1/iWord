@@ -44,17 +44,19 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ambient, living backdrop for the whole site — soft colour washes over a
-   deep indigo base so no page ever reads as a flat, dead rectangle. */
+/* Ambient, living backdrop for the whole site — a bold, vibrant mesh gradient
+   over a rich indigo/violet base so every page has depth and colour. */
 body {
   background:
-    radial-gradient(1000px 700px at 6% -6%,   rgba(232,188,110,0.20), transparent 55%),
-    radial-gradient(1100px 780px at 106% 4%,  rgba(132,112,236,0.26), transparent 55%),
-    radial-gradient(900px 820px at 50% 116%,  rgba(214,132,111,0.18), transparent 60%),
-    radial-gradient(700px 520px at 78% 88%,   rgba(116,182,148,0.12), transparent 60%),
-    linear-gradient(180deg, #0A1030 0%, #111A46 48%, #0A1030 100%);
+    radial-gradient(1200px 800px at 0% -10%,   rgba(232,188,110,0.42), transparent 60%),
+    radial-gradient(1300px 900px at 100% 0%,   rgba(139,110,246,0.55), transparent 58%),
+    radial-gradient(1100px 900px at 50% 120%,  rgba(214,132,111,0.40), transparent 62%),
+    radial-gradient(900px 700px at 88% 92%,    rgba(116,182,148,0.30), transparent 60%),
+    radial-gradient(800px 600px at 12% 88%,    rgba(139,110,246,0.28), transparent 62%),
+    linear-gradient(160deg, #141C52 0%, #1B1746 40%, #221A55 68%, #12163F 100%);
   background-attachment: fixed;
   background-repeat: no-repeat;
+  background-size: cover;
   min-height: 100vh;
 }
 
