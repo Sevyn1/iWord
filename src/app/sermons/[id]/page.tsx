@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERMONS, getRelated, getSermonBySlug } from "@/lib/sermons";
 import { getPastorById } from "@/lib/pastors";
+import { getChurchForPastor } from "@/lib/churches";
 import { getCurrentAccount, isPaidPlan } from "@/lib/account";
 import { isFollowingPastor } from "@/lib/follows";
 import { Thumbnail } from "@/components/Thumbnail";
@@ -23,6 +24,7 @@ export default async function SermonDetailPage({
   const sermon = getSermonBySlug(id);
   if (!sermon) notFound();
   const pastor = getPastorById(sermon.pastorId);
+  const church = pastor ? getChurchForPastor(pastor) : undefined;
   const related = getRelated(sermon, 4);
   const account = await getCurrentAccount();
   const canUseExcerpt = isPaidPlan(account?.plan);
@@ -58,7 +60,16 @@ export default async function SermonDetailPage({
                 <Link href={`/pastors/${pastor.slug}`} className="text-cream font-medium hover:text-gold">
                   {pastor.name}
                 </Link>
-                <div className="text-xs text-cream-muted">{pastor.church} · {pastor.location}</div>
+                <div className="text-xs text-cream-muted">
+                  {church ? (
+                    <Link href={`/churches/${church.slug}`} className="hover:text-gold underline-offset-2 hover:underline">
+                      {pastor.church}
+                    </Link>
+                  ) : (
+                    pastor.church
+                  )}{" "}
+                  · {pastor.location}
+                </div>
               </div>
               <div className="ml-auto">
                 <FollowButton pastorId={pastor.id} initialFollowing={following} size="sm" />

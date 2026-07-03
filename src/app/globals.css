@@ -4,19 +4,19 @@
    Theme: contemplative, modern, reverent. Dark indigo "night vigil" with
    warm gold "let there be light" accents. */
 :root {
-  --ink:         #0A1029;  /* page background */
-  --ink-2:       #101839;  /* elevated surface */
-  --ink-3:       #18224B;  /* card */
-  --ink-4:       #1F2B5C;  /* hover */
-  --line:        #2A3568;  /* divider / border */
-  --cream:       #F4EFE4;  /* primary text on dark */
-  --cream-muted: #B7B2A2;  /* secondary text */
-  --cream-faint: #6F6C63;  /* tertiary text */
-  --gold:        #E0B265;  /* primary accent */
-  --gold-hot:    #F2C77A;  /* hover */
-  --gold-soft:   #3A2D17;  /* gold-tinted badge bg */
-  --rose:        #C97D6B;  /* secondary accent */
-  --leaf:        #6BA889;  /* success / live */
+  --ink:         #0C1330;  /* page background */
+  --ink-2:       #141E47;  /* elevated surface */
+  --ink-3:       #1D2957;  /* card */
+  --ink-4:       #26336A;  /* hover */
+  --line:        #33407A;  /* divider / border */
+  --cream:       #F6F1E7;  /* primary text on dark */
+  --cream-muted: #C2BCAB;  /* secondary text */
+  --cream-faint: #837F73;  /* tertiary text */
+  --gold:        #E8BC6E;  /* primary accent */
+  --gold-hot:    #F7CD82;  /* hover */
+  --gold-soft:   #40321A;  /* gold-tinted badge bg */
+  --rose:        #D2846F;  /* secondary accent */
+  --leaf:        #74B694;  /* success / live */
 }
 
 @theme inline {
@@ -50,10 +50,10 @@ html, body {
 .bg-grain {
   position: relative;
   background:
-    radial-gradient(60% 50% at 20% 20%, rgba(224,178,101,0.18), transparent 60%),
-    radial-gradient(50% 50% at 80% 70%, rgba(201,125,107,0.12), transparent 60%),
-    radial-gradient(80% 80% at 50% 110%, rgba(107,168,137,0.08), transparent 60%),
-    linear-gradient(180deg, #0A1029 0%, #0F1733 100%);
+    radial-gradient(60% 50% at 20% 20%, rgba(232,188,110,0.20), transparent 60%),
+    radial-gradient(50% 50% at 80% 70%, rgba(210,132,111,0.14), transparent 60%),
+    radial-gradient(80% 80% at 50% 110%, rgba(116,182,148,0.10), transparent 60%),
+    linear-gradient(180deg, #0C1330 0%, #131E45 100%);
   background-size: 200% 200%, 200% 200%, 200% 200%, 100% 100%;
   animation: drift 22s ease-in-out infinite alternate;
 }
