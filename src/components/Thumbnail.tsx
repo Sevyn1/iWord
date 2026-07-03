@@ -23,9 +23,10 @@ export function Thumbnail({
   size = "md",
   hideText = false,
 }: ThumbnailProps) {
-  const a = `hsl(${hue}, 60%, 22%)`;
-  const b = `hsl(${(hue + 35) % 360}, 70%, 14%)`;
-  const accent = `hsl(${(hue + 18) % 360}, 80%, 60%)`;
+  const a = `hsl(${hue}, 72%, 42%)`;
+  const b = `hsl(${(hue + 38) % 360}, 74%, 26%)`;
+  const c = `hsl(${(hue - 10 + 360) % 360}, 60%, 14%)`;
+  const accent = `hsl(${(hue + 18) % 360}, 92%, 64%)`;
   const titleSize =
     size === "lg" ? "text-2xl" : size === "sm" ? "text-sm" : "text-lg";
 
@@ -33,23 +34,41 @@ export function Thumbnail({
     <div
       className={`relative w-full aspect-[16/9] overflow-hidden rounded-xl ring-1 ring-line ${className ?? ""}`}
       style={{
-        background: `radial-gradient(120% 100% at 20% 10%, ${a} 0%, ${b} 60%, #060A1E 100%)`,
+        background: `radial-gradient(130% 110% at 18% 0%, ${a} 0%, ${b} 52%, ${c} 100%)`,
       }}
     >
       {/* faint scripture-paper lines */}
       <div
         aria-hidden
-        className="absolute inset-0 opacity-[0.07]"
+        className="absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(0deg, #F4EFE4 0 1px, transparent 1px 22px)",
+            "repeating-linear-gradient(0deg, #F6F1E7 0 1px, transparent 1px 22px)",
+        }}
+      />
+      {/* glossy top highlight */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-1/2"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.18), transparent)",
         }}
       />
       {/* sun-glow accent */}
       <div
         aria-hidden
-        className="absolute -top-10 -right-10 w-44 h-44 rounded-full blur-2xl"
-        style={{ background: accent, opacity: 0.35 }}
+        className="absolute -top-12 -right-8 w-52 h-52 rounded-full blur-2xl"
+        style={{ background: accent, opacity: 0.55 }}
+      />
+      {/* readability scrim behind text */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-2/3"
+        style={{
+          background:
+            "linear-gradient(0deg, rgba(6,10,30,0.6), transparent)",
+        }}
       />
       <div className="absolute inset-0 p-4 flex flex-col justify-end">
         {!hideText && label && (

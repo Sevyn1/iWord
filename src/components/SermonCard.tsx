@@ -33,10 +33,13 @@ export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
               hue={sermon.hue}
               label={sermon.scripture}
               size={compact ? "sm" : "md"}
+              hideText
               className="!ring-0 transition-transform duration-500 group-hover:scale-[1.03]"
             />
-            {/* dim+vignette on hover */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/40 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+            {/* scripture ref chip */}
+            <span className="pointer-events-none absolute left-3 top-3 text-[10px] uppercase tracking-[0.16em] font-medium px-2 py-0.5 rounded-md bg-ink/70 text-cream/90 ring-1 ring-white/10 backdrop-blur-sm">
+              {sermon.scripture}
+            </span>
           </div>
         </Link>
         <button
@@ -60,7 +63,7 @@ export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
           {formatDuration(sermon.durationSec)}
         </span>
         {isActive && (
-          <span className="absolute left-3 top-3 text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full bg-leaf/20 text-leaf ring-1 ring-leaf/40 flex items-center gap-1.5">
+          <span className="absolute right-3 top-3 text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full bg-leaf/20 text-leaf ring-1 ring-leaf/40 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-leaf live-dot" />
             Playing
           </span>
