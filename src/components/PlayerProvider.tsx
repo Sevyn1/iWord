@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { Sermon } from "@/lib/types";
+
+/** How long a signed-out visitor may preview a sermon before we prompt them to
+ * create an account or sign in to keep listening. */
+const ANON_PREVIEW_SECONDS = 30;
 
 type PlayerContextValue = {
   current: Sermon | null;
@@ -55,9 +60,21 @@ export function PlayerProvider({
   const [monthlyUsed, setMonthlyUsed] = React.useState(monthlyRef.current.size);
   const [gateSermon, setGateSermon] = React.useState<Sermon | null>(null);
 
+  // Signed-out visitors get a short preview, then a sign-in prompt. Refs let the
+  // audio event handlers (registered once) read the latest values.
+  const signedOut = plan === null;
+  const signedOutRef = React.useRef(signedOut);
+  signedOutRef.current = signedOut;
+  const previewEndedRef = React.useRef(false);
+  const [showPreviewGate, setShowPreviewGate] = React.useState(false);
+  const pathname = usePathname();
+
   const play = React.useCallback((sermon: Sermon) => {
     const el = audioRef.current;
     if (!el) return;
+
+    // Restart the preview window each time a signed-out visitor hits play.
+    if (signedOut) previewEndedRef.current = false;
 
     // Free plan: enforce the monthly streaming cap before playing anything new.
     if (!isPaid) {
@@ -83,13 +100,19 @@ export function PlayerProvider({
     void el.play().catch(() => {
       /* user gesture missing or asset not yet ready */
     });
-  }, [current, isPaid, freeMonthlyLimit]);
+  }, [current, isPaid, freeMonthlyLimit, signedOut]);
 
   const togglePlay = React.useCallback(() => {
     const el = audioRef.current;
     if (!el || !current) return;
-    if (el.paused) void el.play().catch(() => {});
-    else el.pause();
+    if (el.paused) {
+      // Don't let a signed-out visitor resume past the preview — re-prompt.
+      if (signedOutRef.current && previewEndedRef.current) {
+        setShowPreviewGate(true);
+        return;
+      }
+      void el.play().catch(() => {});
+    } else el.pause();
   }, [current]);
 
   const seek = React.useCallback((sec: number) => {
@@ -114,6 +137,16 @@ export function PlayerProvider({
     const onTime = () => {
       setProgress(el.currentTime);
       for (const fn of listenersRef.current) fn(el.currentTime);
+      // End the preview for signed-out visitors and ask them to sign in.
+      if (
+        signedOutRef.current &&
+        !previewEndedRef.current &&
+        el.currentTime >= ANON_PREVIEW_SECONDS
+      ) {
+        previewEndedRef.current = true;
+        el.pause();
+        setShowPreviewGate(true);
+      }
     };
     const onMeta = () => setDuration(el.duration || 0);
     const onEnd = () => setIsPlaying(false);
@@ -157,6 +190,12 @@ export function PlayerProvider({
           limit={freeMonthlyLimit}
           signedIn={plan !== null}
           onClose={() => setGateSermon(null)}
+        />
+      )}
+      {showPreviewGate && (
+        <PreviewGateModal
+          next={pathname ?? "/"}
+          onClose={() => setShowPreviewGate(false)}
         />
       )}
     </PlayerContext.Provider>
@@ -224,3 +263,69 @@ function StreamLimitModal({
     </div>
   );
 }
+
+function PreviewGateModal({
+  next,
+  onClose,
+}: {
+  next: string;
+  onClose: () => void;
+}) {
+  const nextParam = `?next=${encodeURIComponent(next)}`;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-md rounded-3xl bg-ink-2 ring-1 ring-line p-7 shadow-2xl shadow-black/30">
+        <div className="w-12 h-12 rounded-full bg-gold/15 text-gold ring-1 ring-gold/40 flex items-center justify-center mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 14v-2a9 9 0 0 1 18 0v2"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+            <rect x="3" y="14" width="4" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+            <rect x="17" y="14" width="4" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+          </svg>
+        </div>
+        <h2 className="font-display text-2xl text-cream">
+          Enjoying the message?
+        </h2>
+        <p className="text-cream-muted mt-2 text-sm leading-relaxed">
+          Create a free account to keep listening — you&rsquo;ll get sermons each
+          month, follow the pastors you love, and pick up right where you left
+          off.
+        </p>
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
+          <Link
+            href={`/auth/sign-up${nextParam}`}
+            onClick={onClose}
+            className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot transition-colors"
+          >
+            Create free account
+          </Link>
+          <Link
+            href={`/auth/sign-in${nextParam}`}
+            onClick={onClose}
+            className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-ink-4 text-cream font-medium hover:bg-line transition-colors"
+          >
+            Sign in
+          </Link>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-3 w-full inline-flex items-center justify-center px-4 py-2 rounded-full text-cream-muted hover:text-cream transition-colors text-sm"
+        >
+          Not now
+        </button>
+      </div>
+    </div>
+  );
+}
+
