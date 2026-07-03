@@ -238,7 +238,7 @@ function StreamLimitModal({
           <Link
             href="/pricing"
             onClick={onClose}
-            className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot transition-colors"
+            className="flex-1 whitespace-nowrap inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot transition-colors"
           >
             See plans
           </Link>
@@ -246,19 +246,19 @@ function StreamLimitModal({
             <Link
               href="/auth/sign-up?next=/pricing"
               onClick={onClose}
-              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-ink-4 text-cream font-medium hover:bg-line transition-colors"
+              className="flex-1 whitespace-nowrap inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-ink-4 text-cream font-medium hover:bg-line transition-colors"
             >
               Create account
             </Link>
           )}
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center justify-center px-4 py-2.5 rounded-full text-cream-muted hover:text-cream transition-colors"
-          >
-            Not now
-          </button>
         </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-3 w-full inline-flex items-center justify-center px-4 py-2 rounded-full text-cream-muted hover:text-cream transition-colors text-sm"
+        >
+          Not now
+        </button>
       </div>
     </div>
   );
