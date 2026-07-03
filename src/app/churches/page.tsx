@@ -1,11 +1,31 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { CHURCHES, getPastorsByChurch } from "@/lib/churches";
 import { formatCount } from "@/lib/format";
+import { ChurchSearch } from "./ChurchSearch";
 
 export const metadata = { title: "Churches — iWord" };
 
-export default function ChurchesPage() {
-  const churches = [...CHURCHES].sort((a, b) => a.name.localeCompare(b.name));
+export default async function ChurchesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const q = ((await searchParams).q ?? "").trim().toLowerCase();
+
+  let churches = [...CHURCHES].sort((a, b) => a.name.localeCompare(b.name));
+  if (q) {
+    churches = churches.filter((c) => {
+      const pastors = getPastorsByChurch(c.id);
+      return (
+        c.name.toLowerCase().includes(q) ||
+        c.location.toLowerCase().includes(q) ||
+        (c.denomination ?? "").toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q) ||
+        pastors.some((p) => p.name.toLowerCase().includes(q))
+      );
+    });
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
@@ -20,6 +40,22 @@ export default function ChurchesPage() {
         </p>
       </header>
 
+      <div className="mb-8">
+        <Suspense>
+          <ChurchSearch />
+        </Suspense>
+        {q && (
+          <p className="text-cream-faint text-sm mt-3">
+            {churches.length} {churches.length === 1 ? "church" : "churches"} matching “{q}”
+          </p>
+        )}
+      </div>
+
+      {churches.length === 0 ? (
+        <div className="rounded-2xl bg-ink-2 ring-1 ring-line p-10 text-center text-cream-muted">
+          No churches match your search yet.
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {churches.map((c) => {
           const pastors = getPastorsByChurch(c.id);
@@ -58,6 +94,7 @@ export default function ChurchesPage() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }
