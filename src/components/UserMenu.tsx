@@ -18,6 +18,16 @@ export async function UserMenu({
   const supabase = await createClient();
   const user = supabase ? (await supabase.auth.getUser()).data.user : null;
 
+  let isAdmin = false;
+  if (supabase && user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+    isAdmin = profile?.is_admin === true;
+  }
+
   if (variant === "mobile") {
     if (!user) {
       return (
@@ -48,6 +58,14 @@ export async function UserMenu({
             <span className="text-xs text-cream-muted truncate">{email}</span>
           </span>
         </Link>
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="flex items-center justify-center px-4 py-3 rounded-2xl text-sm font-medium bg-gold/15 text-gold ring-1 ring-gold/40 hover:bg-gold/25 transition-colors"
+          >
+            Admin dashboard
+          </Link>
+        )}
         <form action={signOut}>
           <button
             type="submit"
@@ -100,6 +118,14 @@ export async function UserMenu({
           </span>
           <span className="text-xs text-cream-muted max-w-[10rem] truncate">{email}</span>
         </Link>
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="inline-flex px-3 py-1.5 rounded-full text-sm text-gold hover:text-gold-hot"
+          >
+            Admin
+          </Link>
+        )}
         <form action={signOut}>
           <button
             type="submit"
