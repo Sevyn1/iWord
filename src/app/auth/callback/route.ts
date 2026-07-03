@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/redirect";
 
 /**
  * Email confirmation + OAuth callback. Supabase redirects here after the
@@ -8,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = safeNextPath(searchParams.get("next"));
 
   if (code) {
     const supabase = await createClient();
@@ -17,5 +18,10 @@ export async function GET(request: NextRequest) {
       if (!error) return NextResponse.redirect(`${origin}${next}`);
     }
   }
-  return NextResponse.redirect(`${origin}/auth/sign-in?error=Could+not+sign+you+in`);
+
+  const errorTarget =
+    next !== "/"
+      ? `/auth/sign-in?error=Could+not+sign+you+in&next=${encodeURIComponent(next)}`
+      : "/auth/sign-in?error=Could+not+sign+you+in";
+  return NextResponse.redirect(`${origin}${errorTarget}`);
 }

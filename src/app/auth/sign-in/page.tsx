@@ -1,13 +1,25 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { signIn } from "@/app/auth/actions";
+import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/redirect";
 
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, next: nextParam } = await searchParams;
+  const next = safeNextPath(nextParam);
+
+  const supabase = await createClient();
+  if (supabase) {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) redirect(next);
+  }
+
+  const signUpHref = next !== "/" ? `/auth/sign-up?next=${encodeURIComponent(next)}` : "/auth/sign-up";
 
   return (
     <div className="mx-auto max-w-md px-4 sm:px-6 py-16">
@@ -27,6 +39,7 @@ export default async function SignInPage({
         )}
 
         <form action={signIn} className="mt-6 space-y-4">
+          <input type="hidden" name="next" value={next} />
           <Field label="Email" type="email" name="email" placeholder="you@example.com" required />
           <Field label="Password" type="password" name="password" placeholder="••••••••" required />
           <button
@@ -38,7 +51,7 @@ export default async function SignInPage({
         </form>
         <p className="mt-6 text-sm text-cream-muted text-center">
           New here?{" "}
-          <Link href="/auth/sign-up" className="text-gold hover:text-gold-hot">
+          <Link href={signUpHref} className="text-gold hover:text-gold-hot">
             Create an account
           </Link>
         </p>
