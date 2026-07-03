@@ -21,9 +21,10 @@ export default function TermsPage() {
       <h2>1. Who we are</h2>
       <p>
         iWord provides a platform for listening to sermons and gospel messages
-        from participating pastors and churches. Throughout these Terms,
-        &ldquo;we,&rdquo; &ldquo;us,&rdquo; and &ldquo;iWord&rdquo; refer to the
-        operator of the Service.
+        from participating pastors and churches. iWord is operated by{" "}
+        <strong>Proximeet Inc.</strong>, a company based in Ontario, Canada.
+        Throughout these Terms, &ldquo;we,&rdquo; &ldquo;us,&rdquo; and
+        &ldquo;iWord&rdquo; refer to Proximeet Inc.
       </p>
 
       <h2>2. Eligibility and accounts</h2>
@@ -150,21 +151,16 @@ export default function TermsPage() {
 
       <h2>12. Governing law</h2>
       <p>
-        These Terms are governed by the laws of{" "}
-        <strong>[your province/country]</strong>, without regard to its conflict
-        of laws rules. Any disputes will be handled in the courts located there.
+        These Terms are governed by the laws of the{" "}
+        <strong>Province of Ontario</strong> and the federal laws of Canada
+        applicable therein, without regard to conflict of laws rules. Any
+        disputes will be handled in the courts located in Ontario, Canada.
       </p>
 
       <h2>13. Contact</h2>
       <p>
         Questions about these Terms? Email us at{" "}
         <a href="mailto:hello@iword.app">hello@iword.app</a>.
-      </p>
-
-      <p className="text-cream-faint text-sm">
-        This document is a general template provided for convenience and is not
-        legal advice. Please have it reviewed by a qualified professional before
-        relying on it for your business.
       </p>
     </LegalPage>
   );

@@ -12,8 +12,10 @@ export default function PrivacyPage() {
     <LegalPage title="Privacy Policy" updated="July 3, 2026">
       <p>
         This Privacy Policy explains what information iWord collects, how we use
-        it, and the choices you have. By using iWord, you agree to the practices
-        described here.
+        it, and the choices you have. iWord is operated by{" "}
+        <strong>Proximeet Inc.</strong> (Ontario, Canada), which is the
+        controller responsible for your personal information. By using iWord,
+        you agree to the practices described here.
       </p>
 
       <h2>1. Information we collect</h2>
@@ -135,12 +137,6 @@ export default function PrivacyPage() {
       <p>
         Questions or requests about your privacy? Email us at{" "}
         <a href="mailto:hello@iword.app">hello@iword.app</a>.
-      </p>
-
-      <p className="text-cream-faint text-sm">
-        This document is a general template provided for convenience and is not
-        legal advice. Please have it reviewed by a qualified professional before
-        relying on it for your business.
       </p>
     </LegalPage>
   );
