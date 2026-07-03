@@ -235,21 +235,31 @@ function StreamLimitModal({
           streaming — plus shareable AI excerpts.
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-3">
-          <Link
-            href="/pricing"
-            onClick={onClose}
-            className="flex-1 whitespace-nowrap inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot transition-colors"
-          >
-            See plans
-          </Link>
-          {!signedIn && (
+          {signedIn ? (
             <Link
-              href="/auth/sign-up?next=/pricing"
+              href="/pricing"
               onClick={onClose}
-              className="flex-1 whitespace-nowrap inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-ink-4 text-cream font-medium hover:bg-line transition-colors"
+              className="flex-1 whitespace-nowrap inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot transition-colors"
             >
-              Create account
+              See plans
             </Link>
+          ) : (
+            <>
+              <Link
+                href="/auth/sign-up?next=/pricing"
+                onClick={onClose}
+                className="flex-1 whitespace-nowrap inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot transition-colors"
+              >
+                Create account
+              </Link>
+              <Link
+                href="/auth/sign-in?next=/pricing"
+                onClick={onClose}
+                className="flex-1 whitespace-nowrap inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-ink-4 text-cream font-medium hover:bg-line transition-colors"
+              >
+                Sign in
+              </Link>
+            </>
           )}
         </div>
         <button
