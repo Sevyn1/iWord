@@ -28,23 +28,32 @@ export function BrowseFilters({ pastors, topics }: Props) {
 
   return (
     <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <input
-        type="search"
-        placeholder="Search title, scripture, pastor..."
-        defaultValue={q}
-        onChange={(e) => {
-          const v = e.currentTarget.value;
-          // Debounced enough for a demo: update on blur or Enter
-          if (e.nativeEvent instanceof InputEvent === false) {
-            update("q", v || undefined);
-          }
-        }}
-        onBlur={(e) => update("q", e.currentTarget.value || undefined)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") update("q", e.currentTarget.value || undefined);
-        }}
-        className="px-4 py-2.5 rounded-full bg-ink-2 ring-1 ring-line text-sm text-cream placeholder:text-cream-faint focus:ring-gold outline-none"
-      />
+      <div className="relative">
+        <svg
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-cream-faint pointer-events-none"
+          width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+          <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+        <input
+          type="search"
+          placeholder="Search title, scripture, pastor..."
+          defaultValue={q}
+          onChange={(e) => {
+            const v = e.currentTarget.value;
+            // Debounced enough for a demo: update on blur or Enter
+            if (e.nativeEvent instanceof InputEvent === false) {
+              update("q", v || undefined);
+            }
+          }}
+          onBlur={(e) => update("q", e.currentTarget.value || undefined)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") update("q", e.currentTarget.value || undefined);
+          }}
+          className="w-full pl-11 pr-4 py-2.5 rounded-full bg-ink-2 ring-1 ring-line text-sm text-cream placeholder:text-cream-faint focus:ring-gold outline-none"
+        />
+      </div>
       <Select
         label="Pastor"
         value={pastor}
