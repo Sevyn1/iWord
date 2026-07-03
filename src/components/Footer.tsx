@@ -30,14 +30,18 @@ export function Footer() {
           <ul className="space-y-2 text-sm text-cream-muted">
             <li><Link href="#" className="hover:text-cream">About iWord</Link></li>
             <li><Link href="#" className="hover:text-cream">For pastors</Link></li>
-            <li><Link href="#" className="hover:text-cream">Contact</Link></li>
+            <li><Link href="/terms" className="hover:text-cream">Terms of Service</Link></li>
+            <li><Link href="/privacy" className="hover:text-cream">Privacy Policy</Link></li>
           </ul>
         </div>
       </div>
       <div className="border-t border-line">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 text-xs text-cream-faint flex flex-col sm:flex-row gap-2 justify-between">
           <span>© {new Date().getFullYear()} iWord. Built with reverence.</span>
-          <span>Demo build — sample content for preview only.</span>
+          <div className="flex items-center gap-4">
+            <Link href="/terms" className="hover:text-cream">Terms</Link>
+            <Link href="/privacy" className="hover:text-cream">Privacy</Link>
+          </div>
         </div>
       </div>
     </footer>
