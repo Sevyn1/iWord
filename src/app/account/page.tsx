@@ -98,13 +98,6 @@ export default async function AccountPage() {
                 Free · {planName} plan
               </Link>
             )}
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/15 text-leaf ring-1 ring-leaf/30 px-3 py-1 text-xs font-medium">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4 6h16v12H4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-                <path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Subscribed to the weekly digest
-            </span>
             {pastDue && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-rose/15 text-rose ring-1 ring-rose/40 px-3 py-1 text-xs font-medium">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
