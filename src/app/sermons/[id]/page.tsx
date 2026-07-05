@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SERMONS, getRelated, getSermonBySlug } from "@/lib/sermons";
-import { getPastorById } from "@/lib/pastors";
-import { getChurchForPastor } from "@/lib/churches";
+import {
+  getAllSermons,
+  getRelated,
+  getSermonBySlug,
+  getPastorById,
+  getChurchForPastor,
+} from "@/lib/content";
 import { getCurrentAccount, isPaidPlan } from "@/lib/account";
 import { isFollowingPastor } from "@/lib/follows";
 import { Thumbnail } from "@/components/Thumbnail";
@@ -14,7 +18,8 @@ import { sermonJsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import { formatDurationLong, formatCount, formatRelative } from "@/lib/format";
 
 export async function generateStaticParams() {
-  return SERMONS.map((s) => ({ id: s.slug }));
+  const sermons = await getAllSermons();
+  return sermons.map((s) => ({ id: s.slug }));
 }
 
 export async function generateMetadata({
@@ -23,10 +28,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const sermon = getSermonBySlug(id);
+  const sermon = await getSermonBySlug(id);
   if (!sermon) return { title: "Sermon not found" };
-  const pastor = getPastorById(sermon.pastorId);
-  const title = pastor ? `${sermon.title} — ${pastor.name}` : sermon.title;
+  const title = sermon.pastor ? `${sermon.title} — ${sermon.pastor.name}` : sermon.title;
   const description = sermon.summary;
   return {
     title: sermon.title,
@@ -47,11 +51,11 @@ export default async function SermonDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const sermon = getSermonBySlug(id);
+  const sermon = await getSermonBySlug(id);
   if (!sermon) notFound();
-  const pastor = getPastorById(sermon.pastorId);
-  const church = pastor ? getChurchForPastor(pastor) : undefined;
-  const related = getRelated(sermon, 4);
+  const pastor = await getPastorById(sermon.pastorId);
+  const church = pastor ? await getChurchForPastor(pastor) : undefined;
+  const related = await getRelated(sermon, 4);
   const account = await getCurrentAccount();
   const canUseExcerpt = isPaidPlan(account?.plan);
   const following = pastor ? await isFollowingPastor(pastor.id) : false;

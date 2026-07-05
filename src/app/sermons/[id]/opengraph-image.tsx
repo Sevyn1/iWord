@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getSermonBySlug } from "@/lib/sermons";
-import { getPastorById } from "@/lib/pastors";
+import { getSermonBySlug } from "@/lib/content";
 import { SITE_NAME } from "@/lib/site";
 
 export const size = { width: 1200, height: 630 };
@@ -13,8 +12,8 @@ export default async function OpengraphImage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const sermon = getSermonBySlug(id);
-  const pastor = sermon ? getPastorById(sermon.pastorId) : undefined;
+  const sermon = await getSermonBySlug(id);
+  const pastor = sermon?.pastor;
   const hue = sermon?.hue ?? 32;
 
   return new ImageResponse(

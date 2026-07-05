@@ -5,7 +5,6 @@ import type { Sermon } from "@/lib/types";
 import { usePlayer } from "./PlayerProvider";
 import { formatDuration, formatCount } from "@/lib/format";
 import { Waveform } from "./Waveform";
-import { getPastorById } from "@/lib/pastors";
 
 type Props = { sermon: Sermon };
 
@@ -19,7 +18,7 @@ export function AudioPlayer({ sermon }: Props) {
   const isThis = current?.id === sermon.id;
   const displayProgress = isThis ? progress : 0;
   const displayDuration = isThis && duration ? duration : sermon.durationSec;
-  const pastor = getPastorById(sermon.pastorId);
+  const pastor = sermon.pastor;
   const fraction = displayDuration > 0 ? displayProgress / displayDuration : 0;
   // Deterministic "live listeners" number — varies by sermon, stable per session.
   const liveListeners = 40 + (parseInt(sermon.id.replace(/\D/g, ""), 10) * 137) % 380;

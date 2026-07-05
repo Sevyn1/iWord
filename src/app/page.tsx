@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { SermonCard } from "@/components/SermonCard";
-import { getRecent, getTrending, SERMONS } from "@/lib/sermons";
-import { PASTORS, getPastorById } from "@/lib/pastors";
+import { getRecent, getTrending, getAllSermons, getAllPastors } from "@/lib/content";
 import { getFollowedPastorIds } from "@/lib/follows";
 import { resolveCountry } from "@/lib/geo";
 import { Logo } from "@/components/Logo";
@@ -13,11 +12,16 @@ import { JsonLd } from "@/components/JsonLd";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/jsonld";
 
 export default async function HomePage() {
-  const trending = getTrending(6);
-  const recent = getRecent(4);
+  const [trending, recent, allSermons, pastors] = await Promise.all([
+    getTrending(6),
+    getRecent(4),
+    getAllSermons(),
+    getAllPastors(),
+  ]);
   const hero = trending[0];
-  const heroPastor = hero ? getPastorById(hero.pastorId) : undefined;
-  const totalListensThisWeek = SERMONS.reduce((sum, s) => sum + s.viewsThisWeek, 0);
+  const heroPastor = hero?.pastor;
+  const totalListensThisWeek = allSermons.reduce((sum, s) => sum + s.viewsThisWeek, 0);
+  const pastorById = new Map(pastors.map((p) => [p.id, p]));
 
   const supabase = await createClient();
   const user = supabase ? (await supabase.auth.getUser()).data.user : null;
@@ -26,7 +30,7 @@ export default async function HomePage() {
   // Personalized feed: latest sermons from the pastors the user follows.
   const followedIds = signedIn ? await getFollowedPastorIds() : new Set<string>();
   const followedSermons = followedIds.size
-    ? [...SERMONS]
+    ? [...allSermons]
         .filter((s) => followedIds.has(s.pastorId))
         .sort(
           (a, b) =>
@@ -51,9 +55,10 @@ export default async function HomePage() {
   }
   const nearbyCountry = resolveCountry(userLocation);
   const nearbySermons = nearbyCountry
-    ? getTrending(SERMONS.length)
+    ? [...allSermons]
+        .sort((a, b) => b.viewsThisWeek - a.viewsThisWeek)
         .filter((s) => {
-          const p = getPastorById(s.pastorId);
+          const p = pastorById.get(s.pastorId);
           return p && resolveCountry(p.location) === nearbyCountry;
         })
         .slice(0, 4)
@@ -218,7 +223,7 @@ export default async function HomePage() {
       {/* Pastors row */}
       <Section title="Pastors on iWord">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-          {PASTORS.map((p, i) => (
+          {pastors.map((p, i) => (
             <Link
               key={p.id}
               href={`/pastors/${p.slug}`}
@@ -304,7 +309,7 @@ export default async function HomePage() {
       )}
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-xs text-cream-faint">
-        {SERMONS.length} sermons in the demo library · more on the way.
+        {allSermons.length} sermons in the library · more on the way.
       </div>
     </div>
   );

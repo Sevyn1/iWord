@@ -1,18 +1,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PASTORS, getPastorBySlug } from "@/lib/pastors";
-import { getSermonsByPastor } from "@/lib/sermons";
+import {
+  getAllPastors,
+  getPastorBySlug,
+  getSermonsByPastor,
+  getChurchForPastor,
+} from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
 import { FollowButton } from "@/components/FollowButton";
 import { isFollowingPastor } from "@/lib/follows";
 import { getCurrentAccount } from "@/lib/account";
-import { getChurchForPastor } from "@/lib/churches";
 import { JsonLd } from "@/components/JsonLd";
 import { pastorJsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import { formatCount } from "@/lib/format";
 
 export async function generateStaticParams() {
-  return PASTORS.map((p) => ({ slug: p.slug }));
+  const pastors = await getAllPastors();
+  return pastors.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -21,7 +25,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const pastor = getPastorBySlug(slug);
+  const pastor = await getPastorBySlug(slug);
   if (!pastor) return { title: "Pastor not found" };
   const description = `${pastor.title} at ${pastor.church}, ${pastor.location}. ${pastor.bio}`;
   return {
@@ -47,15 +51,15 @@ export default async function PastorPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const pastor = getPastorBySlug(slug);
+  const pastor = await getPastorBySlug(slug);
   if (!pastor) notFound();
-  const sermons = getSermonsByPastor(pastor.id).sort(
+  const sermons = (await getSermonsByPastor(pastor.id)).sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
   const following = await isFollowingPastor(pastor.id);
   const account = await getCurrentAccount();
   const isPatron = account?.plan === "patron";
-  const church = getChurchForPastor(pastor);
+  const church = await getChurchForPastor(pastor);
   // A pastor inherits their church's colour identity so the two pages match.
   const hue = church?.hue ?? pastor.hue;
 

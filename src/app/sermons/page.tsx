@@ -1,6 +1,5 @@
 import { Suspense } from "react";
-import { SERMONS } from "@/lib/sermons";
-import { PASTORS } from "@/lib/pastors";
+import { getAllSermons, getAllPastors } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
 import { BrowseFilters } from "./BrowseFilters";
 
@@ -28,19 +27,23 @@ export default async function SermonsPage({
   const topic = sp.topic;
   const q = (sp.q ?? "").trim().toLowerCase();
 
-  let items = [...SERMONS];
+  const [allSermons, pastors] = await Promise.all([
+    getAllSermons(),
+    getAllPastors(),
+  ]);
+
+  let items = [...allSermons];
   if (pastorId) items = items.filter((s) => s.pastorId === pastorId);
   if (topic) items = items.filter((s) => s.topic === topic);
   if (q) {
     items = items.filter((s) => {
-      const pastor = PASTORS.find((p) => p.id === s.pastorId);
       return (
         s.title.toLowerCase().includes(q) ||
         s.scripture.toLowerCase().includes(q) ||
         s.topic.toLowerCase().includes(q) ||
         s.tags.some((t) => t.toLowerCase().includes(q)) ||
-        pastor?.name.toLowerCase().includes(q) ||
-        pastor?.church.toLowerCase().includes(q)
+        s.pastor?.name.toLowerCase().includes(q) ||
+        s.pastor?.church.toLowerCase().includes(q)
       );
     });
   }
@@ -57,7 +60,7 @@ export default async function SermonsPage({
     );
   }
 
-  const topics = Array.from(new Set(SERMONS.map((s) => s.topic))).sort();
+  const topics = Array.from(new Set(allSermons.map((s) => s.topic))).sort();
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
@@ -69,7 +72,7 @@ export default async function SermonsPage({
       </header>
 
       <Suspense>
-        <BrowseFilters pastors={PASTORS} topics={topics} />
+        <BrowseFilters pastors={pastors} topics={topics} />
       </Suspense>
 
       {items.length === 0 ? (

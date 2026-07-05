@@ -1,16 +1,16 @@
-import type { Church, Pastor } from "./types";
-import { PASTORS } from "./pastors";
+import type { Church } from "./types";
 
 /**
- * Demo church directory. Like the pastors, these are fictional to avoid any
- * association with real organizations. Website URLs use the reserved
- * `.example` domain (RFC 2606) as non-resolving placeholders — swap them for
- * each church's real site when the ingestion pipeline goes live.
+ * Bundled seed church directory. Used to render the site before/without a
+ * configured database and as the source for `scripts/seed-content`. Like the
+ * pastors, these are fictional to avoid any association with real
+ * organizations. Website URLs use the reserved `.example` domain (RFC 2606) as
+ * non-resolving placeholders.
  *
  * The `hue` ties a church to a colour theme used across its profile page and
- * logo, so each church's page "matches" its own identity.
+ * logo; for ingested churches this is derived from the church's real branding.
  */
-export const CHURCHES: Church[] = [
+export const SEED_CHURCHES: Church[] = [
   {
     id: "c-living-word",
     slug: "living-word-tabernacle",
@@ -77,23 +77,3 @@ export const CHURCHES: Church[] = [
     founded: 2014,
   },
 ];
-
-export function getChurchById(id: string): Church | undefined {
-  return CHURCHES.find((c) => c.id === id);
-}
-
-export function getChurchBySlug(slug: string): Church | undefined {
-  return CHURCHES.find((c) => c.slug === slug);
-}
-
-/** Pastors belonging to a given church, most-followed first. */
-export function getPastorsByChurch(churchId: string): Pastor[] {
-  return PASTORS.filter((p) => p.churchId === churchId).sort(
-    (a, b) => b.followers - a.followers
-  );
-}
-
-/** The church a pastor belongs to, if any. */
-export function getChurchForPastor(pastor: Pastor): Church | undefined {
-  return getChurchById(pastor.churchId);
-}

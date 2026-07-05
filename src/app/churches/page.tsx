@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { CHURCHES, getPastorsByChurch } from "@/lib/churches";
+import type { Pastor } from "@/lib/types";
+import { getAllChurches, getAllPastors } from "@/lib/content";
 import { formatCount } from "@/lib/format";
 import { ChurchSearch } from "./ChurchSearch";
 
@@ -13,10 +14,27 @@ export default async function ChurchesPage({
 }) {
   const q = ((await searchParams).q ?? "").trim().toLowerCase();
 
-  let churches = [...CHURCHES].sort((a, b) => a.name.localeCompare(b.name));
+  const [allChurches, allPastors] = await Promise.all([
+    getAllChurches(),
+    getAllPastors(),
+  ]);
+
+  // Group pastors by church once (most-followed first) to avoid per-card async.
+  const pastorsByChurch = new Map<string, Pastor[]>();
+  for (const p of allPastors) {
+    const list = pastorsByChurch.get(p.churchId) ?? [];
+    list.push(p);
+    pastorsByChurch.set(p.churchId, list);
+  }
+  for (const list of pastorsByChurch.values()) {
+    list.sort((a, b) => b.followers - a.followers);
+  }
+  const pastorsFor = (churchId: string) => pastorsByChurch.get(churchId) ?? [];
+
+  let churches = [...allChurches].sort((a, b) => a.name.localeCompare(b.name));
   if (q) {
     churches = churches.filter((c) => {
-      const pastors = getPastorsByChurch(c.id);
+      const pastors = pastorsFor(c.id);
       return (
         c.name.toLowerCase().includes(q) ||
         c.location.toLowerCase().includes(q) ||
@@ -27,10 +45,7 @@ export default async function ChurchesPage({
     });
   }
 
-  const totalPastors = CHURCHES.reduce(
-    (sum, c) => sum + getPastorsByChurch(c.id).length,
-    0
-  );
+  const totalPastors = allPastors.length;
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
@@ -44,7 +59,7 @@ export default async function ChurchesPage({
           meet its pastors and hear its latest messages.
         </p>
         <p className="text-cream-faint text-sm mt-3">
-          {CHURCHES.length} churches · {totalPastors} pastors
+          {allChurches.length} churches · {totalPastors} pastors
         </p>
       </header>
 
@@ -69,7 +84,7 @@ export default async function ChurchesPage({
       ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {churches.map((c) => {
-          const pastors = getPastorsByChurch(c.id);
+          const pastors = pastorsFor(c.id);
           const followers = pastors.reduce((sum, p) => sum + p.followers, 0);
           return (
             <Link

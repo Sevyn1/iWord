@@ -1,11 +1,13 @@
 import type { Pastor } from "./types";
 
 /**
- * Demo pastors. All names are fictional to avoid any unintended association
- * with real public figures. Replace with real, permissioned creators when
- * the ingestion pipeline goes live.
+ * Bundled seed pastors. Used to render the site before/without a configured
+ * database (local dev, demo) and as the source for `scripts/seed-content`.
+ * Once the DB has ingested content, the live getters in `content.ts` read from
+ * Supabase instead. All names are fictional to avoid any unintended
+ * association with real public figures.
  */
-export const PASTORS: Pastor[] = [
+export const SEED_PASTORS: Pastor[] = [
   {
     id: "p-tomide",
     slug: "tomide-ade-williams",
@@ -72,11 +74,3 @@ export const PASTORS: Pastor[] = [
     followers: 14320,
   },
 ];
-
-export function getPastorById(id: string): Pastor | undefined {
-  return PASTORS.find((p) => p.id === id);
-}
-
-export function getPastorBySlug(slug: string): Pastor | undefined {
-  return PASTORS.find((p) => p.slug === slug);
-}

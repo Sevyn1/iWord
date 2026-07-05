@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CHURCHES, getChurchBySlug, getPastorsByChurch } from "@/lib/churches";
-import { getSermonsByPastor } from "@/lib/sermons";
+import {
+  getAllChurches,
+  getChurchBySlug,
+  getPastorsByChurch,
+  getSermonsByPastor,
+} from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
 import { formatCount } from "@/lib/format";
 
 export async function generateStaticParams() {
-  return CHURCHES.map((c) => ({ slug: c.slug }));
+  const churches = await getAllChurches();
+  return churches.map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({
@@ -15,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const church = getChurchBySlug(slug);
+  const church = await getChurchBySlug(slug);
   return { title: church ? church.name : "Church" };
 }
 
@@ -25,15 +30,18 @@ export default async function ChurchPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const church = getChurchBySlug(slug);
+  const church = await getChurchBySlug(slug);
   if (!church) notFound();
 
-  const pastors = getPastorsByChurch(church.id);
+  const pastors = await getPastorsByChurch(church.id);
   const totalFollowers = pastors.reduce((sum, p) => sum + p.followers, 0);
 
   // Latest sermons across all of the church's pastors.
-  const sermons = pastors
-    .flatMap((p) => getSermonsByPastor(p.id))
+  const sermonLists = await Promise.all(
+    pastors.map((p) => getSermonsByPastor(p.id))
+  );
+  const sermons = sermonLists
+    .flat()
     .sort(
       (a, b) =>
         new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()

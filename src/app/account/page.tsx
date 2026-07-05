@@ -4,8 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getFollowedPastorIds } from "@/lib/follows";
 import { getRecentSermonIds, getMonthlyListenedIds } from "@/lib/listens";
 import { FREE_MONTHLY_STREAMS } from "@/lib/account";
-import { PASTORS } from "@/lib/pastors";
-import { getSermonById } from "@/lib/sermons";
+import { getAllPastors, getSermonById } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
 import { signOut } from "@/app/auth/actions";
 import { isStripeConfigured } from "@/lib/stripe";
@@ -39,12 +38,12 @@ export default async function AccountPage() {
     .single();
 
   const followedIds = await getFollowedPastorIds();
-  const followed = PASTORS.filter((p) => followedIds.has(p.id));
+  const allPastors = await getAllPastors();
+  const followed = allPastors.filter((p) => followedIds.has(p.id));
 
   const recentIds = await getRecentSermonIds(6);
-  const recent = recentIds
-    .map((id) => getSermonById(id))
-    .filter((s): s is NonNullable<typeof s> => Boolean(s));
+  const recentRaw = await Promise.all(recentIds.map((id) => getSermonById(id)));
+  const recent = recentRaw.filter((s): s is NonNullable<typeof s> => Boolean(s));
 
   // Prefer the profile row, but fall back to the name/location captured on the
   // auth user at sign-up (user_metadata) before resorting to the email prefix.

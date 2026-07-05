@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import type { Sermon } from "@/lib/types";
-import { getPastorById } from "@/lib/pastors";
 
 /**
  * "Now on iWord" marquee — gently scrolls the trending sermon titles across
@@ -25,7 +24,7 @@ export function NowPlayingTicker({ sermons }: { sermons: Sermon[] }) {
         <div className="relative flex-1 overflow-hidden">
           <div className="ticker-track flex items-center gap-10 whitespace-nowrap">
             {items.map((s, i) => {
-              const pastor = getPastorById(s.pastorId);
+              const pastor = s.pastor;
               return (
                 <Link
                   key={`${s.id}-${i}`}

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import type { Sermon } from "@/lib/types";
 import { Thumbnail } from "./Thumbnail";
-import { getPastorById } from "@/lib/pastors";
 import { formatDuration, formatCount, formatRelative } from "@/lib/format";
 import { usePlayer } from "./PlayerProvider";
 
@@ -16,7 +15,7 @@ type Props = {
 };
 
 export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
-  const pastor = getPastorById(sermon.pastorId);
+  const pastor = sermon.pastor;
   const { play, current, isPlaying } = usePlayer();
   const isActive = current?.id === sermon.id && isPlaying;
 

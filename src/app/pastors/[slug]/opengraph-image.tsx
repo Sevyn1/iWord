@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getPastorBySlug } from "@/lib/pastors";
+import { getPastorBySlug } from "@/lib/content";
 import { SITE_NAME } from "@/lib/site";
 
 export const size = { width: 1200, height: 630 };
@@ -12,7 +12,7 @@ export default async function OpengraphImage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const pastor = getPastorBySlug(slug);
+  const pastor = await getPastorBySlug(slug);
   const hue = pastor?.hue ?? 32;
 
   return new ImageResponse(

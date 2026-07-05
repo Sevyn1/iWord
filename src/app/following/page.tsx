@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getFollowedPastorIds } from "@/lib/follows";
 import { getRecentSermonIds } from "@/lib/listens";
-import { PASTORS } from "@/lib/pastors";
-import { SERMONS, getSermonById } from "@/lib/sermons";
+import { getAllPastors, getAllSermons, getSermonById } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
 
 export const metadata = { title: "Following" };
@@ -19,10 +18,14 @@ export default async function FollowingPage() {
   if (!user) redirect("/auth/sign-in?next=/following");
 
   const followedIds = await getFollowedPastorIds();
-  const followed = PASTORS.filter((p) => followedIds.has(p.id));
+  const [allPastors, allSermons] = await Promise.all([
+    getAllPastors(),
+    getAllSermons(),
+  ]);
+  const followed = allPastors.filter((p) => followedIds.has(p.id));
 
   // Latest sermons from the pastors the user follows, newest first.
-  const feed = [...SERMONS]
+  const feed = [...allSermons]
     .filter((s) => followedIds.has(s.pastorId))
     .sort(
       (a, b) =>
@@ -31,9 +34,8 @@ export default async function FollowingPage() {
 
   // Continue listening — the user's recently played sermons.
   const recentIds = await getRecentSermonIds(4);
-  const recent = recentIds
-    .map((id) => getSermonById(id))
-    .filter((s): s is NonNullable<typeof s> => Boolean(s));
+  const recentRaw = await Promise.all(recentIds.map((id) => getSermonById(id)));
+  const recent = recentRaw.filter((s): s is NonNullable<typeof s> => Boolean(s));
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">

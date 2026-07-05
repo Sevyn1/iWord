@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePlayer } from "./PlayerProvider";
-import { getPastorById } from "@/lib/pastors";
 import { formatDuration } from "@/lib/format";
 import { PlayPauseButton } from "./PlayPauseButton";
 
 export function MiniPlayer() {
   const { current, progress, duration, seek, streamsLeft } = usePlayer();
   if (!current) return null;
-  const pastor = getPastorById(current.pastorId);
+  const pastor = current.pastor;
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
 
   return (

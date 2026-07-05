@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import path from "path";
 import { createClient } from "@/lib/supabase/server";
-import { getSermonById } from "@/lib/sermons";
+import { getSermonById } from "@/lib/content";
 import {
   getCurrentAccount,
   isPaidPlan,
@@ -42,7 +42,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const sermon = getSermonById(id);
+  const sermon = await getSermonById(id);
   if (!sermon) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
