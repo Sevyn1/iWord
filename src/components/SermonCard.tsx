@@ -49,12 +49,12 @@ export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
           className="absolute right-3 bottom-3 inline-flex items-center justify-center w-11 h-11 rounded-full bg-gold text-ink shadow-lg shadow-black/40 translate-y-1 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-gold-hot active:scale-95 transition-all"
         >
           {isActive ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <rect x="6" y="5" width="4" height="14" rx="1.2" />
               <rect x="14" y="5" width="4" height="14" rx="1.2" />
             </svg>
           ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M7 5.5a1 1 0 0 1 1.55-.83l10 6.5a1 1 0 0 1 0 1.66l-10 6.5A1 1 0 0 1 7 18.5v-13Z" />
             </svg>
           )}

@@ -62,6 +62,9 @@ export default async function RootLayout({
       className={`${inter.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-ink text-cream">
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         <PlayerProvider
           plan={account?.plan ?? null}
           monthlyListenedIds={monthlyListenedIds}
@@ -73,7 +76,7 @@ export default async function RootLayout({
             plan={account?.plan ?? null}
           />
           {account?.pastDue && <BillingAlert plan={account.plan} />}
-          <main className="flex-1 pb-24">{children}</main>
+          <main id="main-content" className="flex-1 pb-24">{children}</main>
           <Footer />
           <MiniPlayer />
         </PlayerProvider>

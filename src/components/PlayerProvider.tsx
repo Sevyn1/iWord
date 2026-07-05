@@ -221,7 +221,7 @@ function StreamLimitModal({
       />
       <div className="relative w-full max-w-md rounded-3xl bg-ink-2 ring-1 ring-line p-7 shadow-2xl shadow-black/30">
         <div className="w-12 h-12 rounded-full bg-gold/15 text-gold ring-1 ring-gold/40 flex items-center justify-center mb-4">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
           </svg>
@@ -292,7 +292,7 @@ function PreviewGateModal({
       />
       <div className="relative w-full max-w-md rounded-3xl bg-ink-2 ring-1 ring-line p-7 shadow-2xl shadow-black/30">
         <div className="w-12 h-12 rounded-full bg-gold/15 text-gold ring-1 ring-gold/40 flex items-center justify-center mb-4">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
               d="M3 14v-2a9 9 0 0 1 18 0v2"
               stroke="currentColor"

@@ -142,3 +142,57 @@ input[type="range"].scrubber::-moz-range-thumb {
   border: none;
   cursor: pointer;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Accessibility
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Visible keyboard focus for every interactive element. Only shows for
+   keyboard/AT users (not on mouse click) thanks to :focus-visible. */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip-to-content link: hidden until focused, then anchored top-left. */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  border-radius: 9999px;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transform: translateY(-150%);
+  transition: transform 150ms ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* Respect users who prefer reduced motion: neutralize looping/entrance
+   animations and long transitions while keeping content fully visible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .bg-grain {
+    animation: none !important;
+    background-position: 0 0 !important;
+  }
+  .fade-up {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+

@@ -25,12 +25,12 @@ export function PlayPauseButton({ size = 40, className }: Props) {
       style={{ width: size, height: size }}
     >
       {isPlaying ? (
-        <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 24 24" fill="currentColor">
+        <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <rect x="6" y="5" width="4" height="14" rx="1.2" />
           <rect x="14" y="5" width="4" height="14" rx="1.2" />
         </svg>
       ) : (
-        <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 24 24" fill="currentColor">
+        <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M7 5.5a1 1 0 0 1 1.55-.83l10 6.5a1 1 0 0 1 0 1.66l-10 6.5A1 1 0 0 1 7 18.5v-13Z" />
         </svg>
       )}
