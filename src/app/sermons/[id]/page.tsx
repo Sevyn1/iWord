@@ -9,6 +9,8 @@ import { Thumbnail } from "@/components/Thumbnail";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { FollowButton } from "@/components/FollowButton";
 import { SermonCard } from "@/components/SermonCard";
+import { JsonLd } from "@/components/JsonLd";
+import { sermonJsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import { formatDurationLong, formatCount, formatRelative } from "@/lib/format";
 
 export async function generateStaticParams() {
@@ -56,6 +58,15 @@ export default async function SermonDetailPage({
 
   return (
     <article className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
+      <JsonLd
+        data={[
+          sermonJsonLd(sermon, pastor),
+          breadcrumbJsonLd([
+            { name: "Sermons", path: "/sermons" },
+            { name: sermon.title, path: `/sermons/${sermon.slug}` },
+          ]),
+        ]}
+      />
       <nav className="text-xs text-cream-faint mb-6">
         <Link href="/sermons" className="hover:text-cream">Sermons</Link>
         <span className="mx-2">/</span>

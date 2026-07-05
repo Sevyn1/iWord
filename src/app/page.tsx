@@ -9,6 +9,8 @@ import { Thumbnail } from "@/components/Thumbnail";
 import { NowPlayingTicker } from "@/components/NowPlayingTicker";
 import { formatCount } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { JsonLd } from "@/components/JsonLd";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/jsonld";
 
 export default async function HomePage() {
   const trending = getTrending(6);
@@ -59,6 +61,7 @@ export default async function HomePage() {
 
   return (
     <div>
+      <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
       {/* Hero */}
       <section className="bg-grain border-b border-line relative overflow-hidden">
         {/* soft halo behind hero card */}

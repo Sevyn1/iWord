@@ -7,6 +7,8 @@ import { FollowButton } from "@/components/FollowButton";
 import { isFollowingPastor } from "@/lib/follows";
 import { getCurrentAccount } from "@/lib/account";
 import { getChurchForPastor } from "@/lib/churches";
+import { JsonLd } from "@/components/JsonLd";
+import { pastorJsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import { formatCount } from "@/lib/format";
 
 export async function generateStaticParams() {
@@ -59,6 +61,14 @@ export default async function PastorPage({
 
   return (
     <div>
+      <JsonLd
+        data={[
+          pastorJsonLd(pastor, church),
+          breadcrumbJsonLd([
+            { name: pastor.name, path: `/pastors/${pastor.slug}` },
+          ]),
+        ]}
+      />
       {/* Header — themed by the pastor's church */}
       <section
         className="relative overflow-hidden"
