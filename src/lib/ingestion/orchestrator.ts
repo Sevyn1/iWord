@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAndParseFeed } from "./rss";
 import { deriveHue, enrichEpisode } from "./enrich";
-import { searchPodcasts } from "./podcastindex";
+import { discover } from "./discovery";
 import {
   episodeToSermon,
   feedToChurchAndPastor,
@@ -119,9 +119,9 @@ export async function ingestFeed(
 }
 
 /**
- * Optional discovery: search Podcast Index for the given terms and add any
- * newly-found feeds to the `feeds` table (active) so they're ingested. Returns
- * how many feeds were added. No-ops when Podcast Index isn't configured.
+ * Optional discovery: search for the given terms (Podcast Index if configured,
+ * else Apple's free search) and add any newly-found feeds to the `feeds` table
+ * (active) so they're ingested. Returns how many feeds were added.
  */
 export async function discoverFeeds(
   admin: SupabaseClient,
@@ -130,7 +130,7 @@ export async function discoverFeeds(
 ): Promise<number> {
   let added = 0;
   for (const term of terms) {
-    const candidates = await searchPodcasts(term, perTerm);
+    const candidates = await discover(term, perTerm);
     for (const c of candidates) {
       const res = await admin
         .from("feeds")

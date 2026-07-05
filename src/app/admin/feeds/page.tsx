@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isPodcastIndexConfigured } from "@/lib/ingestion/podcastindex";
+import { discoveryProvider } from "@/lib/ingestion/discovery";
 import { isOpenAIConfigured } from "@/lib/ingestion/enrich";
 import { addFeed, deleteFeed, discoverNow, scanNow, setFeedActive } from "./actions";
 
@@ -42,7 +42,8 @@ export default async function AdminFeedsPage() {
     .order("created_at", { ascending: false });
   const feeds = (data ?? []) as FeedRow[];
 
-  const discoveryOn = isPodcastIndexConfigured();
+  const discoveryOn = true;
+  const provider = discoveryProvider();
   const aiOn = isOpenAIConfigured();
   const activeCount = feeds.filter((f) => f.active).length;
 
@@ -77,7 +78,7 @@ export default async function AdminFeedsPage() {
       {/* Capability banner */}
       <div className="mt-5 flex flex-wrap gap-2 text-xs">
         <Pill on={aiOn} label={aiOn ? "AI enrichment on" : "AI enrichment off (heuristic mode)"} />
-        <Pill on={discoveryOn} label={discoveryOn ? "Podcast Index on" : "Podcast Index off"} />
+        <Pill on={discoveryOn} label={`Discovery: ${provider}`} />
         <span className="px-2.5 py-1 rounded-full bg-ink-3 ring-1 ring-line text-cream-muted">
           {activeCount} active · {feeds.length} total
         </span>
@@ -116,9 +117,7 @@ export default async function AdminFeedsPage() {
         >
           <h2 className="font-display text-lg text-cream">Discover feeds</h2>
           <p className="text-xs text-cream-faint mt-1">
-            {discoveryOn
-              ? "Search Podcast Index and add matches to the scan list."
-              : "Set PODCAST_INDEX_KEY / _SECRET to enable discovery."}
+            Search {provider} and add matches to the scan list.
           </p>
           <div className="mt-3 flex items-center gap-2">
             <input
