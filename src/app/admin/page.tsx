@@ -87,6 +87,20 @@ export default async function AdminPage({
         </Link>
       </div>
 
+      <div className="mt-6">
+        <Link
+          href="/admin/feeds"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ink-2 ring-1 ring-line text-cream text-sm hover:bg-ink-3 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="5" cy="19" r="1.5" fill="currentColor" />
+          </svg>
+          Content feeds
+          <span className="text-cream-faint">— manage ingestion sources</span>
+        </Link>
+      </div>
+
       <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Total members" value={total} />
         <Stat label="Paying members" value={paying} accent />
