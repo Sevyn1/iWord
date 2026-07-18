@@ -4,6 +4,7 @@ import { fetchAndParseFeed } from "./rss";
 import { deriveHue, enrichEpisode } from "./enrich";
 import { discover } from "./discovery";
 import {
+  churchIdFor,
   episodeToSermon,
   feedToChurchAndPastor,
   type SermonInsert,
@@ -43,21 +44,8 @@ export async function ingestFeed(
       return { feedUrl, ok: true, added: 0, skipped: 0 };
     }
 
-    const hue = await deriveHue(feed);
-    const { church, pastor } = feedToChurchAndPastor(feed, hue);
-
-    // Upsert the church + host pastor (idempotent on the deterministic id).
-    const churchUpsert = await admin
-      .from("churches")
-      .upsert(church, { onConflict: "id" });
-    if (churchUpsert.error) throw new Error(`church upsert: ${churchUpsert.error.message}`);
-
-    const pastorUpsert = await admin
-      .from("pastors")
-      .upsert(pastor, { onConflict: "id" });
-    if (pastorUpsert.error) throw new Error(`pastor upsert: ${pastorUpsert.error.message}`);
-
     // Find which episodes we already have, so we only enrich brand-new ones.
+    const churchId = churchIdFor(feed.feedUrl);
     const refs = feed.episodes.map((e) => e.sourceRef);
     const existing = await admin
       .from("sermons")
@@ -72,6 +60,45 @@ export async function ingestFeed(
     const fresh: NormalizedEpisode[] = feed.episodes
       .filter((e) => !seen.has(e.sourceRef))
       .slice(0, MAX_NEW_PER_FEED);
+
+    // Reuse the church's existing brand hue if we've seen this feed before.
+    // Only new churches trigger a (paid) vision call to derive the hue.
+    const existingChurch = await admin
+      .from("churches")
+      .select("hue")
+      .eq("id", churchId)
+      .maybeSingle();
+    const knownHue =
+      typeof existingChurch.data?.hue === "number"
+        ? (existingChurch.data.hue as number)
+        : null;
+
+    // Nothing new to add and the church already exists: bail out before any
+    // paid AI calls so idle daily runs cost nothing.
+    if (fresh.length === 0 && knownHue !== null) {
+      return {
+        feedUrl,
+        ok: true,
+        churchId,
+        pastorId: `p-${churchId.slice(2)}`,
+        added: 0,
+        skipped: feed.episodes.length,
+      };
+    }
+
+    const hue = knownHue ?? (await deriveHue(feed));
+    const { church, pastor } = feedToChurchAndPastor(feed, hue);
+
+    // Upsert the church + host pastor (idempotent on the deterministic id).
+    const churchUpsert = await admin
+      .from("churches")
+      .upsert(church, { onConflict: "id" });
+    if (churchUpsert.error) throw new Error(`church upsert: ${churchUpsert.error.message}`);
+
+    const pastorUpsert = await admin
+      .from("pastors")
+      .upsert(pastor, { onConflict: "id" });
+    if (pastorUpsert.error) throw new Error(`pastor upsert: ${pastorUpsert.error.message}`);
 
     if (fresh.length === 0) {
       return {

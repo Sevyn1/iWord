@@ -76,12 +76,21 @@ export default async function ChurchPage({
           </Link>
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
             <div
-              className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl flex items-center justify-center text-3xl font-semibold text-white ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40"
+              className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl flex items-center justify-center text-3xl font-semibold text-white ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40 overflow-hidden"
               style={{
                 background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
               }}
             >
-              {church.initials}
+              {church.artworkUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={church.artworkUrl}
+                  alt={church.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                church.initials
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs uppercase tracking-[0.18em] text-[#EBC67A]">

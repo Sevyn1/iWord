@@ -104,18 +104,20 @@ export async function GET(
     if (ipHash) await recordStreamHit(ipHash, sermon.id);
   }
 
-  const objectKey = path.basename(sermon.audioUrl); // e.g. demo-1.wav
-
-  // Hand the listener a short-lived signed URL and redirect, so object storage
-  // serves the bytes (and Range requests) directly — the serverless function
-  // never proxies the audio. The redirect is uncacheable so each playback
-  // re-checks the gate and gets a fresh, expiring URL.
-  const signedUrl = await getSignedSermonUrl(objectKey);
-  if (!signedUrl) {
+  // Resolve the audio source. Ingested (podcast) sermons carry a full external
+  // enclosure URL — we stream those from the source. Uploaded sermons store a
+  // Storage object key, which we hand back as a short-lived signed URL. Either
+  // way we redirect so object storage / the source serves the bytes (and Range
+  // requests) directly — the serverless function never proxies the audio.
+  const isExternal = /^https?:\/\//i.test(sermon.audioUrl);
+  const target = isExternal
+    ? sermon.audioUrl
+    : await getSignedSermonUrl(path.basename(sermon.audioUrl));
+  if (!target) {
     return NextResponse.json({ error: "audio_unavailable" }, { status: 503 });
   }
 
-  return NextResponse.redirect(signedUrl, {
+  return NextResponse.redirect(target, {
     status: 307,
     headers: { "Cache-Control": "private, no-store" },
   });

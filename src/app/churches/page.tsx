@@ -113,12 +113,22 @@ export default async function ChurchesPage({
               </div>
               <div className="px-5 pb-5 -mt-10 flex flex-col flex-1">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-semibold text-white ring-2 ring-ink-2 shadow-lg shadow-black/20"
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-semibold text-white ring-2 ring-ink-2 shadow-lg shadow-black/20 overflow-hidden"
                   style={{
                     background: `linear-gradient(135deg, hsl(${c.hue},65%,38%), hsl(${(c.hue + 30) % 360},70%,22%))`,
                   }}
                 >
-                  {c.initials}
+                  {c.artworkUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={c.artworkUrl}
+                      alt=""
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    c.initials
+                  )}
                 </div>
                 <h2 className="mt-3 font-display text-xl text-cream group-hover:text-gold transition-colors">
                   {c.name}
