@@ -109,33 +109,37 @@ export default async function PastorPage({
             <h1 className="font-display text-3xl sm:text-5xl text-white leading-tight mt-1">
               {pastor.name}
             </h1>
-            <p className="text-white/75 mt-1">
-              {church ? (
-                <Link
-                  href={`/churches/${church.slug}`}
-                  className="inline-flex items-center gap-2 text-white hover:text-white/80 underline-offset-2 hover:underline transition-colors"
-                >
-                  {church.logoUrl || church.artworkUrl ? (
-                    <ChurchLogo
-                      src={(church.logoUrl ?? church.artworkUrl) as string}
-                      alt=""
-                      className="h-8 w-auto max-w-[160px] object-contain object-left shrink-0"
-                    />
-                  ) : (
-                    <span
-                      className="w-8 h-8 rounded-lg shrink-0 ring-1 ring-white/30"
-                      style={{
-                        background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
-                      }}
-                      aria-hidden="true"
-                    />
-                  )}
-                  {pastor.church}
-                </Link>
-              ) : (
-                pastor.church
-              )}{" "}
-              · {pastor.location}
+            {church ? (
+              <Link
+                href={`/churches/${church.slug}`}
+                className="mt-2.5 inline-flex items-center gap-2.5 text-white hover:text-white/80 underline-offset-2 hover:underline transition-colors"
+              >
+                {church.logoUrl || church.artworkUrl ? (
+                  <ChurchLogo
+                    src={(church.logoUrl ?? church.artworkUrl) as string}
+                    alt=""
+                    className="h-16 w-auto max-w-[240px] object-contain object-left shrink-0"
+                  />
+                ) : (
+                  <span
+                    className="w-16 h-16 rounded-xl shrink-0 ring-1 ring-white/30"
+                    style={{
+                      background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
+                    }}
+                    aria-hidden="true"
+                  />
+                )}
+                <span className="font-medium text-lg">{pastor.church}</span>
+              </Link>
+            ) : (
+              <p className="text-white/85 mt-2.5 text-lg">{pastor.church}</p>
+            )}
+            <p className="text-white/70 text-sm mt-1.5 flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0">
+                <path d="M12 21s-7-5.686-7-11a7 7 0 1114 0c0 5.314-7 11-7 11z" stroke="currentColor" strokeWidth="1.6" />
+                <circle cx="12" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.6" />
+              </svg>
+              {pastor.location}
             </p>
             <p className="mt-3 text-white/80 max-w-2xl">{pastor.bio}</p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
