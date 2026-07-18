@@ -7,6 +7,7 @@ import {
   getChurchForPastor,
 } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
+import { ChurchLogo } from "@/components/ChurchLogo";
 import { FollowButton } from "@/components/FollowButton";
 import { isFollowingPastor } from "@/lib/follows";
 import { getCurrentAccount } from "@/lib/account";
@@ -107,15 +108,23 @@ export default async function PastorPage({
               {church ? (
                 <Link
                   href={`/churches/${church.slug}`}
-                  className="inline-flex items-center gap-1.5 text-white hover:text-white/80 underline-offset-2 hover:underline transition-colors"
+                  className="inline-flex items-center gap-2 text-white hover:text-white/80 underline-offset-2 hover:underline transition-colors"
                 >
-                  <span
-                    className="w-4 h-4 rounded-[5px] shrink-0 ring-1 ring-white/30"
-                    style={{
-                      background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
-                    }}
-                    aria-hidden="true"
-                  />
+                  {church.logoUrl || church.artworkUrl ? (
+                    <ChurchLogo
+                      src={(church.logoUrl ?? church.artworkUrl) as string}
+                      alt=""
+                      className="h-8 w-auto max-w-[160px] object-contain object-left shrink-0"
+                    />
+                  ) : (
+                    <span
+                      className="w-8 h-8 rounded-lg shrink-0 ring-1 ring-white/30"
+                      style={{
+                        background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
+                      }}
+                      aria-hidden="true"
+                    />
+                  )}
                   {pastor.church}
                 </Link>
               ) : (

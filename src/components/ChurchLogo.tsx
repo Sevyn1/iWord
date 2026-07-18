@@ -38,21 +38,32 @@ export function ChurchLogo({
         const { data } = ctx.getImageData(0, 0, size, size);
 
         let opaque = 0;
+        let dark = 0;
         let lumSum = 0;
         for (let i = 0; i < data.length; i += 4) {
           if (data[i + 3] < 32) continue; // skip transparent pixels
           opaque++;
-          lumSum += 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+          const lum =
+            0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+          lumSum += lum;
+          if (lum < 90) dark++; // ink that would disappear on a dark banner
         }
         if (opaque < 8) return;
 
         const total = size * size;
         const transparentRatio = 1 - opaque / total;
         const avgLuminance = lumSum / opaque; // 0 (black) .. 255 (white)
+        const darkFraction = dark / opaque;
 
-        // Only intervene for genuine transparent logos whose ink is dark.
-        // Full-bleed icons (little transparency) already read on any surface.
-        if (!cancelled && transparentRatio > 0.12 && avgLuminance < 110) {
+        // Only intervene for genuine transparent logos (not full-bleed icons
+        // that carry their own background). Add a light backdrop when the logo
+        // is dark overall, OR contains a meaningful amount of dark ink that
+        // would otherwise vanish (e.g. a dark wordmark beside a bright mark).
+        if (
+          !cancelled &&
+          transparentRatio > 0.12 &&
+          (avgLuminance < 120 || darkFraction > 0.25)
+        ) {
           setNeedsLight(true);
         }
       } catch {
