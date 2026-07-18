@@ -4,6 +4,13 @@
  */
 export type ContentSource = "manual" | "podcast" | "podcastindex" | "youtube";
 
+/**
+ * Whether a piece of content is a full worship-service sermon or a
+ * podcast/teaching program (Q&A show, radio broadcast, etc.). Used to split a
+ * church's content into "Sermons" and "Podcast" tabs.
+ */
+export type ContentType = "sermon" | "podcast";
+
 export type Pastor = {
   id: string;
   slug: string;
@@ -19,6 +26,8 @@ export type Pastor = {
   /** Hue (0-360) used to seed the avatar gradient. */
   hue: number;
   followers: number;
+  /** Real profile photo URL (name-matched headshot), if one was found. */
+  imageUrl?: string;
   /** How this pastor entered the catalog (defaults to "manual"). */
   source?: ContentSource;
 };
@@ -50,7 +59,9 @@ export type Church = {
   hue: number;
   /** Year the church was founded (optional). */
   founded?: number;
-  /** Source artwork/logo URL (podcast art or site logo), used for theming. */
+  /** The church's real logo, extracted from its website (preferred visual). */
+  logoUrl?: string;
+  /** Source artwork URL (podcast cover art), used as a fallback for the logo. */
   artworkUrl?: string;
   /** How this church entered the catalog (defaults to "manual"). */
   source?: ContentSource;
@@ -67,6 +78,8 @@ export type PastorSummary = {
   church: string;
   initials: string;
   hue: number;
+  /** Real profile photo URL, if one was found. */
+  imageUrl?: string;
 };
 
 export type Sermon = {
@@ -96,6 +109,8 @@ export type Sermon = {
   pastor?: PastorSummary;
   /** How this sermon entered the catalog (defaults to "manual"). */
   source?: ContentSource;
+  /** Whether this is a full sermon or a podcast/teaching episode. */
+  contentType?: ContentType;
   /** Canonical link back to the original episode/source (for attribution). */
   sourceUrl?: string;
 };

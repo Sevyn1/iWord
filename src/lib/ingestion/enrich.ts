@@ -182,6 +182,11 @@ export async function resolveChurchIdentity(
         "churchName empty when the feed is a multi-church network or aggregator with no single " +
         "congregation (e.g. The Gospel Coalition), or you genuinely cannot tie it to a real " +
         "church. NEVER invent a church, pastor, location, or website. " +
+        "Also classify the feed's format: 'sermon' if its episodes are full " +
+        "worship-service sermons/expository preaching, or 'podcast' if it's a " +
+        "teaching program, Q&A show, radio broadcast, or topical podcast (e.g. " +
+        "'Ask Pastor John' and 'Renewing Your Mind' are 'podcast'; a church's " +
+        "Sunday sermon feed is 'sermon'). " +
         "Respond ONLY with JSON matching: " +
         '{"isChurch": boolean, "confidence": number (0-1), ' +
         '"churchName": string (the real church name, "" if none), ' +
@@ -190,7 +195,8 @@ export async function resolveChurchIdentity(
         '"location": string ("City, State/Country", "" if unknown), ' +
         '"denomination": string ("" if nondenominational/unknown), ' +
         '"website": string (official church website starting with https://, "" if unknown), ' +
-        '"brandHue": number (0-359, the church website\'s dominant brand color as an HSL hue)}.',
+        '"brandHue": number (0-359, the church website\'s dominant brand color as an HSL hue), ' +
+        '"contentType": "sermon" | "podcast"}.',
     },
     {
       role: "user",
@@ -223,6 +229,7 @@ export async function resolveChurchIdentity(
     denomination: (p.denomination || "").trim(),
     website: (p.website || "").trim(),
     brandHue: hue,
+    contentType: p.contentType === "sermon" ? "sermon" : "podcast",
   };
 }
 
@@ -379,4 +386,163 @@ function colorToHsl(input: string): { h: number; s: number; l: number } | null {
     if (h < 0) h += 360;
   }
   return { h, s, l };
+}
+
+/** Resolve a possibly-relative URL against a base; null if unparseable. */
+function absUrl(src: string, base: string): string | null {
+  try {
+    return new URL(decodeEntities(src.trim()), base).href;
+  } catch {
+    return null;
+  }
+}
+
+/** Decode the few HTML entities that show up inside attribute URLs. */
+function decodeEntities(s: string): string {
+  return s
+    .replace(/&amp;/gi, "&")
+    .replace(/&#0*38;/g, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0*39;|&apos;/gi, "'");
+}
+
+/** True when a URL explicitly requests a tiny (favicon-sized) image. */
+function tooSmall(url: string): boolean {
+  const m = url.match(/[?&](?:w|width|h|height|size)=(\d+)/i);
+  return m ? Number(m[1]) > 0 && Number(m[1]) <= 48 : false;
+}
+
+/** Looks like a real raster image (not an inline data URI or SVG sprite). */
+function looksLikeImage(url: string): boolean {
+  if (/^data:/i.test(url)) return false;
+  if (/\.svg(\?|#|$)/i.test(url)) return false;
+  return /\.(png|jpe?g|webp|avif)(\?|#|$)/i.test(url) || !/\.[a-z0-9]{2,4}(\?|#|$)/i.test(url);
+}
+
+/** Pull the `src` (incl. lazy-load variants) out of an <img> tag string. */
+function imgSrc(tag: string): string | null {
+  const m =
+    tag.match(/\b(?:data-src|data-lazy-src|data-original)=["']([^"']+)["']/i) ||
+    tag.match(/\bsrc=["']([^"']+)["']/i);
+  return m ? m[1] : null;
+}
+
+/**
+ * Extract a church's real logo from its website. Prefers a header logo image,
+ * then the apple-touch-icon, then the Open Graph image, then a large favicon.
+ * Returns an absolute URL or null. No fabrication — only what the site declares.
+ */
+export async function extractChurchLogo(website: string): Promise<string | null> {
+  if (!/^https?:\/\//i.test(website)) return null;
+  const html = await fetchText(website);
+  if (!html) return null;
+
+  // 1. An <img> in the markup that is explicitly a logo.
+  for (const m of html.matchAll(/<img\b[^>]*>/gi)) {
+    const tag = m[0];
+    if (!/logo/i.test(tag)) continue;
+    const src = imgSrc(tag);
+    if (!src) continue;
+    const abs = absUrl(src, website);
+    if (abs && looksLikeImage(abs) && !tooSmall(abs)) return abs;
+  }
+
+  // 2. apple-touch-icon (usually a clean square brand mark).
+  const apple = html.match(
+    /<link[^>]+rel=["'][^"']*apple-touch-icon[^"']*["'][^>]+href=["']([^"']+)["']/i
+  );
+  if (apple) {
+    const abs = absUrl(apple[1], website);
+    if (abs && !tooSmall(abs)) return abs;
+  }
+
+  // 3. Open Graph / Twitter image.
+  const og =
+    html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
+  if (og) {
+    const abs = absUrl(og[1], website);
+    if (abs && looksLikeImage(abs) && !tooSmall(abs)) return abs;
+  }
+
+  // 4. Any icon link as a last resort.
+  const icon = html.match(/<link[^>]+rel=["'][^"']*icon[^"']*["'][^>]+href=["']([^"']+)["']/i);
+  if (icon) {
+    const abs = absUrl(icon[1], website);
+    if (abs && !tooSmall(abs)) return abs;
+  }
+  return null;
+}
+
+/**
+ * Best-effort extract a pastor's real headshot from the church's staff/about
+ * page. Only returns an image whose alt text or nearby caption clearly names
+ * the pastor, so we never attach the wrong person's photo. Returns null when no
+ * confident, name-anchored match is found.
+ */
+export async function extractPastorHeadshot(
+  website: string,
+  pastorName: string
+): Promise<string | null> {
+  if (!/^https?:\/\//i.test(website) || !pastorName.trim()) return null;
+
+  const tokens = pastorName
+    .toLowerCase()
+    .replace(/\b(rev|dr|pastor|mr|mrs|ms|jr|sr|the)\b\.?/g, " ")
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .filter((t) => t.length > 1);
+  if (tokens.length === 0) return null;
+  const first = tokens[0];
+  const last = tokens[tokens.length - 1];
+
+  const home = await fetchText(website);
+  if (!home) return null;
+
+  // Candidate staff/about pages linked from the homepage, plus the homepage.
+  const pageUrls = new Set<string>([website]);
+  for (const m of home.matchAll(/<a\b[^>]*href=["']([^"']+)["']/gi)) {
+    const href = m[1];
+    if (/(staff|about|leadership|our-team|our-people|team|pastors|elders|meet|who-we-are)/i.test(href)) {
+      const abs = absUrl(href, website);
+      if (abs && abs.startsWith("http")) pageUrls.add(abs);
+      if (pageUrls.size >= 5) break;
+    }
+  }
+
+  const nameMatches = (text: string): boolean => {
+    const t = text.toLowerCase();
+    return t.includes(last) && (t.includes(first) || t.includes(`${first[0]} ${last}`));
+  };
+
+  for (const pageUrl of pageUrls) {
+    const html = pageUrl === website ? home : await fetchText(pageUrl);
+    if (!html) continue;
+
+    // (a) An <img> whose alt/title names the pastor.
+    for (const m of html.matchAll(/<img\b[^>]*>/gi)) {
+      const tag = m[0];
+      const alt = (tag.match(/\b(?:alt|title)=["']([^"']+)["']/i)?.[1] ?? "");
+      if (!alt || !nameMatches(alt)) continue;
+      const src = imgSrc(tag);
+      const abs = src ? absUrl(src, pageUrl) : null;
+      if (abs && looksLikeImage(abs)) return abs;
+    }
+
+    // (b) The pastor's name appears in the text near an <img> (caption layout).
+    const idx = html.toLowerCase().indexOf(last);
+    if (idx >= 0) {
+      const window = html.slice(Math.max(0, idx - 900), idx + 300);
+      if (nameMatches(window)) {
+        const imgs = [...window.matchAll(/<img\b[^>]*>/gi)];
+        const nearest = imgs[imgs.length - 1];
+        if (nearest) {
+          const src = imgSrc(nearest[0]);
+          const abs = src ? absUrl(src, pageUrl) : null;
+          if (abs && looksLikeImage(abs)) return abs;
+        }
+      }
+    }
+  }
+  return null;
 }

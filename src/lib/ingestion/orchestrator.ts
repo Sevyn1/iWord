@@ -1,7 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAndParseFeed } from "./rss";
-import { deriveChurchHue, enrichEpisode, resolveChurchIdentity } from "./enrich";
+import {
+  deriveChurchHue,
+  enrichEpisode,
+  extractChurchLogo,
+  extractPastorHeadshot,
+  resolveChurchIdentity,
+} from "./enrich";
 import { discover } from "./discovery";
 import {
   episodeToSermon,
@@ -47,13 +53,15 @@ export async function ingestFeed(
     // identity call once per feed (the first time we see it).
     const feedRow = await admin
       .from("feeds")
-      .select("id, church_id, pastor_id")
+      .select("id, church_id, pastor_id, content_type")
       .eq("kind", "podcast")
       .eq("url", feedUrl)
       .maybeSingle();
     const feedRowId = (feedRow.data?.id as string | undefined) ?? null;
     let churchId = (feedRow.data?.church_id as string | null) ?? null;
     let pastorId = (feedRow.data?.pastor_id as string | null) ?? null;
+    let contentType: "sermon" | "podcast" =
+      feedRow.data?.content_type === "podcast" ? "podcast" : "sermon";
 
     // Find which episodes we already have, so we only enrich brand-new ones.
     const refs = feed.episodes.map((e) => e.sourceRef);
@@ -113,7 +121,23 @@ export async function ingestFeed(
         };
       }
       hue = await deriveChurchHue(identity);
-      const { church, pastor } = feedToChurchAndPastor(feed, identity, hue);
+      contentType = identity.contentType;
+
+      // Best-effort: pull the church's real logo and the pastor's headshot from
+      // the church website. Both are optional and only set when found (a
+      // headshot only when its alt/caption clearly names the pastor).
+      const pastorName = identity.pastorName || feed.author?.trim() || "";
+      const [logoUrl, headshotUrl] = identity.website
+        ? await Promise.all([
+            extractChurchLogo(identity.website),
+            extractPastorHeadshot(identity.website, pastorName),
+          ])
+        : [null, null];
+
+      const { church, pastor } = feedToChurchAndPastor(feed, identity, hue, {
+        logoUrl,
+        headshotUrl,
+      });
 
       // Upsert the church + pastor (idempotent on the identity-based id, so
       // multiple feeds for the same church merge into one row).
@@ -132,7 +156,7 @@ export async function ingestFeed(
       if (feedRowId) {
         await admin
           .from("feeds")
-          .update({ church_id: churchId, pastor_id: pastorId })
+          .update({ church_id: churchId, pastor_id: pastorId, content_type: contentType })
           .eq("id", feedRowId);
       }
     }
@@ -154,7 +178,7 @@ export async function ingestFeed(
     for (const episode of fresh) {
       const enrichment = await enrichEpisode(feed.title, episode.title, episode.description);
       rows.push(
-        episodeToSermon(feed, episode, churchId, pastorId ?? churchId, hue, enrichment)
+        episodeToSermon(feed, episode, churchId, pastorId ?? churchId, hue, enrichment, contentType)
       );
     }
 

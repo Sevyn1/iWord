@@ -110,6 +110,7 @@ export type ChurchInsert = {
   website: string | null;
   initials: string;
   hue: number;
+  logo_url: string | null;
   artwork_url: string | null;
   source: "podcast";
   source_ref: string;
@@ -153,6 +154,7 @@ export type SermonInsert = {
   source_url: string | null;
   feed_url: string;
   is_published: boolean;
+  content_type: "sermon" | "podcast";
 };
 
 /**
@@ -164,7 +166,8 @@ export type SermonInsert = {
 export function feedToChurchAndPastor(
   feed: NormalizedFeed,
   identity: ChurchIdentity,
-  hue: number
+  hue: number,
+  media: { logoUrl?: string | null; headshotUrl?: string | null } = {}
 ): { church: ChurchInsert; pastor: PastorInsert } {
   const churchName = identity.churchName || feed.title;
   const pastorName = identity.pastorName || feed.author?.trim() || churchName;
@@ -191,6 +194,7 @@ export function feedToChurchAndPastor(
     website: identity.website || feed.link || null,
     initials: initialsFrom(churchName),
     hue,
+    logo_url: media.logoUrl || null,
     artwork_url: feed.artworkUrl || null,
     source: "podcast",
     source_ref: churchRef,
@@ -209,7 +213,8 @@ export function feedToChurchAndPastor(
     // Pastor inherits the church's hue so their pages match.
     hue,
     followers: 0,
-    image_url: feed.artworkUrl || null,
+    // Only a real, name-matched headshot — never the podcast cover art.
+    image_url: media.headshotUrl || null,
     source: "podcast",
     source_ref: pastorRef,
     feed_url: feed.feedUrl,
@@ -225,7 +230,8 @@ export function episodeToSermon(
   churchId: string,
   pastorId: string,
   hue: number,
-  enrichment: { summary: string; scripture: string; topic: string; tags: string[] }
+  enrichment: { summary: string; scripture: string; topic: string; tags: string[] },
+  contentType: "sermon" | "podcast" = "sermon"
 ): SermonInsert {
   return {
     id: sermonIdFor(episode.sourceRef),
@@ -247,5 +253,6 @@ export function episodeToSermon(
     source_url: episode.sourceUrl || null,
     feed_url: feed.feedUrl,
     is_published: true,
+    content_type: contentType,
   };
 }

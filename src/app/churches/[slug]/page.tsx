@@ -6,7 +6,7 @@ import {
   getPastorsByChurch,
   getSermonsByPastor,
 } from "@/lib/content";
-import { SermonCard } from "@/components/SermonCard";
+import { ChurchContentTabs } from "@/components/ChurchContentTabs";
 import { formatCount } from "@/lib/format";
 
 export async function generateStaticParams() {
@@ -36,17 +36,23 @@ export default async function ChurchPage({
   const pastors = await getPastorsByChurch(church.id);
   const totalFollowers = pastors.reduce((sum, p) => sum + p.followers, 0);
 
-  // Latest sermons across all of the church's pastors.
+  // Latest sermons across all of the church's pastors, split by content type.
   const sermonLists = await Promise.all(
     pastors.map((p) => getSermonsByPastor(p.id))
   );
-  const sermons = sermonLists
+  const allContent = sermonLists
     .flat()
     .sort(
       (a, b) =>
         new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-    )
-    .slice(0, 6);
+    );
+  const sermonItems = allContent
+    .filter((s) => s.contentType !== "podcast")
+    .slice(0, 12);
+  const podcastItems = allContent
+    .filter((s) => s.contentType === "podcast")
+    .slice(0, 12);
+  const logo = church.logoUrl ?? church.artworkUrl;
 
   return (
     <div>
@@ -75,23 +81,25 @@ export default async function ChurchPage({
             All churches
           </Link>
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
-            <div
-              className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl flex items-center justify-center text-3xl font-semibold text-white ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40 overflow-hidden"
-              style={{
-                background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
-              }}
-            >
-              {church.artworkUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+            {logo ? (
+              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40 overflow-hidden bg-white flex items-center justify-center p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={church.artworkUrl}
+                  src={logo}
                   alt={church.name}
-                  className="w-full h-full object-cover"
+                  className="max-w-full max-h-full object-contain"
                 />
-              ) : (
-                church.initials
-              )}
-            </div>
+              </div>
+            ) : (
+              <div
+                className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl flex items-center justify-center text-3xl font-semibold text-white ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40"
+                style={{
+                  background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
+                }}
+              >
+                {church.initials}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-xs uppercase tracking-[0.18em] text-[#EBC67A]">
                 {church.denomination ? `${church.denomination} church` : "Church"}
@@ -155,14 +163,23 @@ export default async function ChurchPage({
                 href={`/pastors/${p.slug}`}
                 className="group flex items-center gap-4 rounded-2xl bg-ink-2 ring-1 ring-line p-4 hover:ring-gold/40 hover:bg-ink-3 transition-all"
               >
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-sm font-semibold text-white ring-1 ring-line shrink-0"
-                  style={{
-                    background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
-                  }}
-                >
-                  {p.initials}
-                </div>
+                {p.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.imageUrl}
+                    alt={p.name}
+                    className="w-14 h-14 rounded-full object-cover ring-1 ring-line shrink-0 bg-white/5"
+                  />
+                ) : (
+                  <div
+                    className="w-14 h-14 rounded-full flex items-center justify-center text-sm font-semibold text-white ring-1 ring-line shrink-0"
+                    style={{
+                      background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
+                    }}
+                  >
+                    {p.initials}
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="text-cream font-medium truncate group-hover:text-gold transition-colors">{p.name}</div>
                   <div className="text-cream-muted text-sm truncate">{p.title}</div>
@@ -182,19 +199,12 @@ export default async function ChurchPage({
         )}
       </section>
 
-      {/* Latest sermons from the church */}
-      {sermons.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12">
-          <h2 className="font-display text-2xl text-cream mb-5">
-            Latest from {church.name}
-          </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sermons.map((s, i) => (
-              <SermonCard key={s.id} sermon={s} delayMs={i * 70} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Latest content from the church, split into Sermons / Podcast */}
+      <ChurchContentTabs
+        churchName={church.name}
+        sermons={sermonItems}
+        podcasts={podcastItems}
+      />
     </div>
   );
 }

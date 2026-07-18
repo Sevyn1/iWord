@@ -71,6 +71,32 @@ export async function setFeedActive(formData: FormData) {
   revalidatePath("/admin/feeds");
 }
 
+/**
+ * Set whether a feed is classified as full "sermon"s or a "podcast" program,
+ * and re-stamp its already-ingested episodes so the church page tabs update.
+ */
+export async function setFeedContentType(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const url = String(formData.get("url") ?? "");
+  const contentType =
+    String(formData.get("contentType") ?? "") === "podcast" ? "podcast" : "sermon";
+  if (!id) return;
+
+  const admin = createAdminClient();
+  if (!admin) return;
+
+  await admin.from("feeds").update({ content_type: contentType }).eq("id", id);
+  if (url) {
+    await admin
+      .from("sermons")
+      .update({ content_type: contentType })
+      .eq("source", "podcast")
+      .eq("feed_url", url);
+  }
+  revalidatePath("/admin/feeds");
+}
+
 /** Remove a feed from the scan list. Ingested content is left in place. */
 export async function deleteFeed(formData: FormData) {
   await requireAdmin();

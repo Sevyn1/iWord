@@ -29,6 +29,7 @@ type PastorRow = {
   initials: string | null;
   hue: number;
   followers: number;
+  image_url: string | null;
   source: string | null;
 };
 
@@ -43,6 +44,7 @@ type ChurchRow = {
   initials: string | null;
   hue: number;
   founded: number | null;
+  logo_url: string | null;
   artwork_url: string | null;
   source: string | null;
 };
@@ -53,6 +55,7 @@ type JoinedPastor = {
   church: string | null;
   initials: string | null;
   hue: number;
+  image_url: string | null;
 } | null;
 
 type SermonRow = {
@@ -72,11 +75,12 @@ type SermonRow = {
   excerpt_url: string | null;
   source: string | null;
   source_url: string | null;
+  content_type: string | null;
   pastor?: JoinedPastor;
 };
 
 const SERMON_SELECT =
-  "id, slug, title, pastor_id, scripture, topic, tags, published_at, duration_sec, audio_url, summary, hue, views_this_week, excerpt_url, source, source_url, pastor:pastors(slug, name, church, initials, hue)";
+  "id, slug, title, pastor_id, scripture, topic, tags, published_at, duration_sec, audio_url, summary, hue, views_this_week, excerpt_url, source, source_url, content_type, pastor:pastors(slug, name, church, initials, hue, image_url)";
 
 // ── mappers ─────────────────────────────────────────────────────────────────
 
@@ -93,6 +97,7 @@ function mapPastor(r: PastorRow): Pastor {
     initials: r.initials ?? "",
     hue: r.hue,
     followers: r.followers,
+    imageUrl: r.image_url ?? undefined,
     source: (r.source as ContentSource) ?? "manual",
   };
 }
@@ -109,6 +114,7 @@ function mapChurch(r: ChurchRow): Church {
     initials: r.initials ?? "",
     hue: r.hue,
     founded: r.founded ?? undefined,
+    logoUrl: r.logo_url ?? undefined,
     artworkUrl: r.artwork_url ?? undefined,
     source: (r.source as ContentSource) ?? "manual",
   };
@@ -122,6 +128,7 @@ function summaryFromJoin(p: JoinedPastor): PastorSummary | undefined {
     church: p.church ?? "",
     initials: p.initials ?? "",
     hue: p.hue,
+    imageUrl: p.image_url ?? undefined,
   };
 }
 
@@ -142,6 +149,7 @@ function mapSermon(r: SermonRow): Sermon {
     viewsThisWeek: r.views_this_week,
     excerptUrl: r.excerpt_url ?? undefined,
     source: (r.source as ContentSource) ?? "manual",
+    contentType: r.content_type === "podcast" ? "podcast" : "sermon",
     sourceUrl: r.source_url ?? undefined,
     pastor: summaryFromJoin(r.pastor ?? null),
   };

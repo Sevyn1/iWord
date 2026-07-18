@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { discoveryProvider } from "@/lib/ingestion/discovery";
 import { isOpenAIConfigured } from "@/lib/ingestion/enrich";
-import { addFeed, deleteFeed, discoverNow, scanNow, setFeedActive } from "./actions";
+import { addFeed, deleteFeed, discoverNow, scanNow, setFeedActive, setFeedContentType } from "./actions";
 
 export const metadata = { title: "Feeds · Admin" };
 // A manual "Scan now" runs the full ingestion pass inside this route.
@@ -15,6 +15,7 @@ type FeedRow = {
   url: string;
   title: string | null;
   active: boolean;
+  content_type: string | null;
   last_scanned_at: string | null;
   last_status: string | null;
   created_at: string;
@@ -38,7 +39,7 @@ export default async function AdminFeedsPage() {
 
   const { data } = await admin
     .from("feeds")
-    .select("id, kind, url, title, active, last_scanned_at, last_status, created_at")
+    .select("id, kind, url, title, active, content_type, last_scanned_at, last_status, created_at")
     .order("created_at", { ascending: false });
   const feeds = (data ?? []) as FeedRow[];
 
@@ -148,6 +149,7 @@ export default async function AdminFeedsPage() {
             <thead>
               <tr className="text-left text-cream-faint text-xs uppercase tracking-wider">
                 <th className="px-5 py-3 font-medium">Feed</th>
+                <th className="px-5 py-3 font-medium">Type</th>
                 <th className="px-5 py-3 font-medium">Last scan</th>
                 <th className="px-5 py-3 font-medium">Status</th>
                 <th className="px-5 py-3 font-medium">Active</th>
@@ -157,7 +159,7 @@ export default async function AdminFeedsPage() {
             <tbody>
               {feeds.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-10 text-center text-cream-muted">
+                  <td colSpan={6} className="px-5 py-10 text-center text-cream-muted">
                     No feeds yet. Add a podcast RSS URL above to start ingesting.
                   </td>
                 </tr>
@@ -169,6 +171,28 @@ export default async function AdminFeedsPage() {
                       {f.title || f.url}
                     </div>
                     <div className="text-cream-faint text-xs truncate">{f.url}</div>
+                  </td>
+                  <td className="px-5 py-3">
+                    <form action={setFeedContentType}>
+                      <input type="hidden" name="id" value={f.id} />
+                      <input type="hidden" name="url" value={f.url} />
+                      <input
+                        type="hidden"
+                        name="contentType"
+                        value={f.content_type === "podcast" ? "sermon" : "podcast"}
+                      />
+                      <button
+                        type="submit"
+                        title="Click to switch content type"
+                        className={
+                          f.content_type === "podcast"
+                            ? "px-2.5 py-1 rounded-lg bg-rose/15 text-rose ring-1 ring-rose/40 text-xs hover:bg-rose/25 capitalize"
+                            : "px-2.5 py-1 rounded-lg bg-gold/15 text-gold ring-1 ring-gold/40 text-xs hover:bg-gold/25 capitalize"
+                        }
+                      >
+                        {f.content_type === "podcast" ? "Podcast" : "Sermon"}
+                      </button>
+                    </form>
                   </td>
                   <td className="px-5 py-3 text-cream-muted whitespace-nowrap">
                     {f.last_scanned_at

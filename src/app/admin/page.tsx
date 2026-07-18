@@ -101,6 +101,21 @@ export default async function AdminPage({
         </Link>
       </div>
 
+      <div className="mt-3">
+        <Link
+          href="/admin/content"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ink-2 ring-1 ring-line text-cream text-sm hover:bg-ink-3 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
+            <circle cx="9" cy="10" r="2" stroke="currentColor" strokeWidth="2" />
+            <path d="m5 18 5-4 3 2 3-3 3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Logos &amp; photos
+          <span className="text-cream-faint">— church logos, pastor headshots</span>
+        </Link>
+      </div>
+
       <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Total members" value={total} />
         <Stat label="Paying members" value={paying} accent />

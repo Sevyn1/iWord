@@ -88,6 +88,11 @@ export type ChurchIdentity = {
   website: string;
   /** The church's brand color as an HSL hue (0-359), the model's best guess. */
   brandHue: number;
+  /**
+   * Whether this feed's episodes are full worship-service sermons ("sermon") or
+   * a podcast/teaching program — Q&A, radio broadcast, topical show ("podcast").
+   */
+  contentType: "sermon" | "podcast";
 };
 
 /** Outcome of ingesting one feed, for logging + admin display. */

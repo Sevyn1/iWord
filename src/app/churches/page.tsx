@@ -112,24 +112,26 @@ export default async function ChurchesPage({
                 )}
               </div>
               <div className="px-5 pb-5 -mt-10 flex flex-col flex-1">
-                <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-semibold text-white ring-2 ring-ink-2 shadow-lg shadow-black/20 overflow-hidden"
-                  style={{
-                    background: `linear-gradient(135deg, hsl(${c.hue},65%,38%), hsl(${(c.hue + 30) % 360},70%,22%))`,
-                  }}
-                >
-                  {c.artworkUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
+                {c.logoUrl || c.artworkUrl ? (
+                  <div className="w-16 h-16 rounded-2xl ring-2 ring-ink-2 shadow-lg shadow-black/20 overflow-hidden bg-white flex items-center justify-center p-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={c.artworkUrl}
+                      src={c.logoUrl ?? c.artworkUrl}
                       alt=""
                       loading="lazy"
-                      className="w-full h-full object-cover"
+                      className="max-w-full max-h-full object-contain"
                     />
-                  ) : (
-                    c.initials
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-semibold text-white ring-2 ring-ink-2 shadow-lg shadow-black/20"
+                    style={{
+                      background: `linear-gradient(135deg, hsl(${c.hue},65%,38%), hsl(${(c.hue + 30) % 360},70%,22%))`,
+                    }}
+                  >
+                    {c.initials}
+                  </div>
+                )}
                 <h2 className="mt-3 font-display text-xl text-cream group-hover:text-gold transition-colors">
                   {c.name}
                 </h2>
@@ -151,17 +153,28 @@ export default async function ChurchesPage({
                 <div className="mt-auto pt-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="flex -space-x-2">
-                      {pastors.slice(0, 3).map((p) => (
-                        <div
-                          key={p.id}
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white ring-2 ring-ink-2"
-                          style={{
-                            background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
-                          }}
-                        >
-                          {p.initials}
-                        </div>
-                      ))}
+                      {pastors.slice(0, 3).map((p) =>
+                        p.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            key={p.id}
+                            src={p.imageUrl}
+                            alt=""
+                            loading="lazy"
+                            className="w-7 h-7 rounded-full object-cover ring-2 ring-ink-2 bg-white/5"
+                          />
+                        ) : (
+                          <div
+                            key={p.id}
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white ring-2 ring-ink-2"
+                            style={{
+                              background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
+                            }}
+                          >
+                            {p.initials}
+                          </div>
+                        )
+                      )}
                     </div>
                     <span className="text-cream-faint text-xs">
                       {pastors.length} {pastors.length === 1 ? "pastor" : "pastors"} ·{" "}
