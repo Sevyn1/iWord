@@ -4,6 +4,7 @@ import type { Pastor } from "@/lib/types";
 import { getAllChurches, getAllPastors } from "@/lib/content";
 import { formatCount } from "@/lib/format";
 import { ChurchSearch } from "./ChurchSearch";
+import { ChurchLogo } from "@/components/ChurchLogo";
 
 export const metadata = { title: "Churches" };
 
@@ -113,11 +114,9 @@ export default async function ChurchesPage({
               </div>
               {/* Logo z-stacked above the banner/body seam — natural aspect ratio, no tile */}
               {c.logoUrl || c.artworkUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={c.logoUrl ?? c.artworkUrl}
+                <ChurchLogo
+                  src={(c.logoUrl ?? c.artworkUrl) as string}
                   alt=""
-                  loading="lazy"
                   className="absolute left-5 top-14 z-20 h-16 w-auto max-w-[55%] object-contain object-left drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
                 />
               ) : (

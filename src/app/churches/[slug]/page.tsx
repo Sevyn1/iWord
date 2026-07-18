@@ -7,6 +7,7 @@ import {
   getSermonsByPastor,
 } from "@/lib/content";
 import { ChurchContentTabs } from "@/components/ChurchContentTabs";
+import { ChurchLogo } from "@/components/ChurchLogo";
 import { formatCount } from "@/lib/format";
 
 export async function generateStaticParams() {
@@ -82,8 +83,7 @@ export default async function ChurchPage({
           </Link>
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
             {logo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <ChurchLogo
                 src={logo}
                 alt={church.name}
                 className="h-24 sm:h-32 w-auto max-w-[60%] object-contain object-left shrink-0 drop-shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
