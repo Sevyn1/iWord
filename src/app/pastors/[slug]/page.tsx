@@ -7,7 +7,6 @@ import {
   getChurchForPastor,
 } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
-import { ChurchLogo } from "@/components/ChurchLogo";
 import { ChurchWatermark } from "@/components/ChurchWatermark";
 import { FollowButton } from "@/components/FollowButton";
 import { isFollowingPastor } from "@/lib/follows";
@@ -112,24 +111,28 @@ export default async function PastorPage({
             {church ? (
               <Link
                 href={`/churches/${church.slug}`}
-                className="mt-2.5 inline-flex items-center gap-2.5 text-white hover:text-white/80 underline-offset-2 hover:underline transition-colors"
+                className="group mt-3 inline-flex items-center gap-3 rounded-2xl bg-white pl-3 pr-4 py-2.5 shadow-lg shadow-black/25 ring-1 ring-black/5 hover:shadow-xl transition-shadow"
               >
                 {church.logoUrl || church.artworkUrl ? (
-                  <ChurchLogo
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={(church.logoUrl ?? church.artworkUrl) as string}
                     alt=""
-                    className="h-20 w-auto max-w-[300px] object-contain object-left shrink-0"
+                    className="h-14 w-auto max-w-[180px] object-contain shrink-0"
                   />
                 ) : (
                   <span
-                    className="w-20 h-20 rounded-2xl shrink-0 ring-1 ring-white/30"
+                    className="w-12 h-12 rounded-xl shrink-0"
                     style={{
                       background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
                     }}
                     aria-hidden="true"
                   />
                 )}
-                <span className="font-medium text-lg">{pastor.church}</span>
+                <span className="h-9 w-px bg-black/10 shrink-0" aria-hidden="true" />
+                <span className="font-semibold text-[#1B2138] leading-tight group-hover:text-[#1B2138]/80 transition-colors">
+                  {pastor.church}
+                </span>
               </Link>
             ) : (
               <p className="text-white/85 mt-2.5 text-lg">{pastor.church}</p>
