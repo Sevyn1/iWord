@@ -30,9 +30,9 @@ export function Logo({ size = 28, showWordmark = true, className }: LogoProps) {
           </radialGradient>
         </defs>
         {/* outer ring */}
-        <circle cx="20" cy="20" r="18" stroke="#E0B265" strokeWidth="1.2" opacity="0.35" />
+        <circle cx="20" cy="20" r="18" stroke="#B5853A" strokeWidth="1.3" opacity="0.55" />
         {/* the "i" stem */}
-        <rect x="17.5" y="17" width="5" height="17" rx="2.5" fill="#F4EFE4" />
+        <rect x="17.5" y="17" width="5" height="17" rx="2.5" fill="#1B2138" />
         {/* the sun-dot */}
         <circle cx="20" cy="10" r="4.2" fill="url(#iword-sun)" />
         {/* small rays */}
