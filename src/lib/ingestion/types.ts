@@ -60,6 +60,36 @@ export type EpisodeEnrichment = {
   tags: string[];
 };
 
+/**
+ * Resolved real-world identity of the church/ministry behind a sermon feed.
+ *
+ * Many sermon podcasts are published by a ministry (Desiring God, Ligonier) or
+ * a parachurch network (The Gospel Coalition) rather than by a congregation.
+ * We only ever surface real, verifiable churches, so this resolver maps a feed
+ * to the actual church behind it (e.g. Grace to You → Grace Community Church)
+ * or flags it as not a single church so the feed can be skipped.
+ */
+export type ChurchIdentity = {
+  /** True only when the feed maps to one real, existing local church. */
+  isChurch: boolean;
+  /** Confidence (0-1) that the mapping is factually correct. */
+  confidence: number;
+  /** The real church name (e.g. "Parkside Church"), or "" when not a church. */
+  churchName: string;
+  /** The senior/primary/founding pastor's real name. */
+  pastorName: string;
+  /** The pastor's role, e.g. "Senior Pastor", "Founding Pastor". */
+  pastorTitle: string;
+  /** "City, State/Country" of the church, or "" if unknown. */
+  location: string;
+  /** Denomination or tradition, or "" if nondenominational/unknown. */
+  denomination: string;
+  /** Official church website (https), or "" if unknown. */
+  website: string;
+  /** The church's brand color as an HSL hue (0-359), the model's best guess. */
+  brandHue: number;
+};
+
 /** Outcome of ingesting one feed, for logging + admin display. */
 export type IngestResult = {
   feedUrl: string;

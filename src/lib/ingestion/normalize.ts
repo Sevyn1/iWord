@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import type { NormalizedEpisode, NormalizedFeed } from "./types";
+import type { ChurchIdentity, NormalizedEpisode, NormalizedFeed } from "./types";
 
 /**
  * Mapping helpers that turn parsed feed data into the DB row shapes used by the
@@ -33,7 +33,7 @@ export function initialsFrom(name: string): string {
  */
 export function hueFromString(input: string): number {
   const hash = createHash("sha1").update(input).digest();
-  return hash[0] % 360;
+  return (hash[0] * 256 + hash[1]) % 360;
 }
 
 /** Short stable hash suffix to keep generated ids/slugs unique. */
@@ -54,6 +54,30 @@ export function pastorIdFor(sourceRef: string): string {
 /** Deterministic sermon id from its per-episode source ref. */
 export function sermonIdFor(sourceRef: string): string {
   return `s-${shortHash(sourceRef)}`;
+}
+
+/** Normalize a name/place for identity hashing (lowercase, alnum, single spaces). */
+function identityKey(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
+ * Deterministic church id from its real-world identity (name + location) rather
+ * than the feed URL, so several feeds that resolve to the same church (e.g. two
+ * John Piper podcasts → Bethlehem Baptist Church) merge into one church row.
+ */
+export function churchIdentityId(name: string, location: string): string {
+  return `c-${shortHash(identityKey(name) + "|" + identityKey(location))}`;
+}
+
+/** Deterministic pastor id from the pastor's name within a church. */
+export function pastorIdentityId(name: string, churchId: string): string {
+  return `p-${shortHash(identityKey(name) + "|" + churchId)}`;
 }
 
 /** Stable, collision-resistant slug for a sermon (title + ref hash). */
@@ -132,47 +156,54 @@ export type SermonInsert = {
 };
 
 /**
- * Build the church + pastor rows for a feed. The feed URL is the stable
- * source_ref for both (one feed = one show = one church + host pastor here).
+ * Build the church + pastor rows for a feed, using the resolved real-world
+ * {@link ChurchIdentity} (the actual church name, senior pastor, location,
+ * denomination, website and brand hue) rather than the raw podcast metadata.
+ * The feed URL stays the stable source_ref for both (one feed = one church).
  */
 export function feedToChurchAndPastor(
   feed: NormalizedFeed,
+  identity: ChurchIdentity,
   hue: number
 ): { church: ChurchInsert; pastor: PastorInsert } {
-  const feedRef = feed.feedUrl;
-  const churchName = feed.title;
-  const pastorName = feed.author?.trim() || feed.title;
+  const churchName = identity.churchName || feed.title;
+  const pastorName = identity.pastorName || feed.author?.trim() || churchName;
 
-  const churchId = churchIdFor(feedRef);
-  const pastorId = pastorIdFor(feedRef);
+  // Identity-based ids so multiple feeds for the same church/pastor merge.
+  const churchId = churchIdentityId(churchName, identity.location);
+  const pastorId = pastorIdentityId(pastorName, churchId);
 
-  // Suffix pretty slugs with a short hash so two feeds with the same show name
-  // can't collide on the unique slug constraint (and URLs stay stable per feed).
-  const suffix = shortHash(feedRef).slice(0, 6);
+  // Stable, identity-derived slug suffix (same across every feed for this
+  // church) so re-ingesting from any of its feeds produces the same URLs.
+  const suffix = churchId.slice(2, 8);
+  // Stable per-identity source_ref so the unique (source, source_ref) index
+  // treats every feed of the same church as one row instead of colliding.
+  const churchRef = identity.website || `church:${churchId}`;
+  const pastorRef = `pastor:${pastorId}`;
 
   const church: ChurchInsert = {
     id: churchId,
     slug: `${slugify(churchName)}-${suffix}`,
     name: churchName,
-    location: null,
-    denomination: null,
+    location: identity.location || null,
+    denomination: identity.denomination || null,
     description: feed.description || null,
-    website: feed.link || null,
+    website: identity.website || feed.link || null,
     initials: initialsFrom(churchName),
     hue,
     artwork_url: feed.artworkUrl || null,
     source: "podcast",
-    source_ref: feedRef,
+    source_ref: churchRef,
   };
 
   const pastor: PastorInsert = {
     id: pastorId,
     slug: `${slugify(pastorName)}-${suffix}`,
     name: pastorName,
-    title: "Host",
+    title: identity.pastorTitle || "Pastor",
     church: churchName,
     church_id: churchId,
-    location: "",
+    location: identity.location || "",
     bio: feed.description || "",
     initials: initialsFrom(pastorName),
     // Pastor inherits the church's hue so their pages match.
@@ -180,8 +211,8 @@ export function feedToChurchAndPastor(
     followers: 0,
     image_url: feed.artworkUrl || null,
     source: "podcast",
-    source_ref: feedRef,
-    feed_url: feedRef,
+    source_ref: pastorRef,
+    feed_url: feed.feedUrl,
   };
 
   return { church, pastor };

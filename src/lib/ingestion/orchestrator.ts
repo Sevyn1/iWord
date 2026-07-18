@@ -1,10 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAndParseFeed } from "./rss";
-import { deriveHue, enrichEpisode } from "./enrich";
+import { deriveChurchHue, enrichEpisode, resolveChurchIdentity } from "./enrich";
 import { discover } from "./discovery";
 import {
-  churchIdFor,
   episodeToSermon,
   feedToChurchAndPastor,
   type SermonInsert,
@@ -44,8 +43,19 @@ export async function ingestFeed(
       return { feedUrl, ok: true, added: 0, skipped: 0 };
     }
 
+    // The feed row caches the resolved church/pastor so we only pay for the AI
+    // identity call once per feed (the first time we see it).
+    const feedRow = await admin
+      .from("feeds")
+      .select("id, church_id, pastor_id")
+      .eq("kind", "podcast")
+      .eq("url", feedUrl)
+      .maybeSingle();
+    const feedRowId = (feedRow.data?.id as string | undefined) ?? null;
+    let churchId = (feedRow.data?.church_id as string | null) ?? null;
+    let pastorId = (feedRow.data?.pastor_id as string | null) ?? null;
+
     // Find which episodes we already have, so we only enrich brand-new ones.
-    const churchId = churchIdFor(feed.feedUrl);
     const refs = feed.episodes.map((e) => e.sourceRef);
     const existing = await admin
       .from("sermons")
@@ -61,51 +71,78 @@ export async function ingestFeed(
       .filter((e) => !seen.has(e.sourceRef))
       .slice(0, MAX_NEW_PER_FEED);
 
-    // Reuse the church's existing brand hue if we've seen this feed before.
-    // Only new churches trigger a (paid) vision call to derive the hue.
-    const existingChurch = await admin
-      .from("churches")
-      .select("hue")
-      .eq("id", churchId)
-      .maybeSingle();
-    const knownHue =
-      typeof existingChurch.data?.hue === "number"
-        ? (existingChurch.data.hue as number)
-        : null;
+    let hue = 0;
+    if (churchId) {
+      // Already resolved on a previous run: reuse the church + stored hue, no
+      // paid AI identity call. Idle runs with nothing new cost $0.
+      const ch = await admin
+        .from("churches")
+        .select("hue")
+        .eq("id", churchId)
+        .maybeSingle();
+      hue = typeof ch.data?.hue === "number" ? (ch.data.hue as number) : 0;
+      if (fresh.length === 0) {
+        return {
+          feedUrl,
+          ok: true,
+          churchId,
+          pastorId: pastorId ?? undefined,
+          added: 0,
+          skipped: feed.episodes.length,
+        };
+      }
+    } else {
+      // First time we've seen this feed: resolve the real church behind it. We
+      // only surface real, verifiable churches — a feed that maps to no single
+      // congregation (a parachurch network like TGC) is skipped, and the feed
+      // is deactivated so we never pay to re-resolve it on future runs.
+      const identity = await resolveChurchIdentity(feed);
+      if (!identity || !identity.churchName || identity.confidence < 0.5) {
+        if (feedRowId) {
+          await admin
+            .from("feeds")
+            .update({ active: false, last_status: "skipped: no real church identified" })
+            .eq("id", feedRowId);
+        }
+        return {
+          feedUrl,
+          ok: true,
+          added: 0,
+          skipped: feed.episodes.length,
+          error: "skipped: no real church identified",
+        };
+      }
+      hue = await deriveChurchHue(identity);
+      const { church, pastor } = feedToChurchAndPastor(feed, identity, hue);
 
-    // Nothing new to add and the church already exists: bail out before any
-    // paid AI calls so idle daily runs cost nothing.
-    if (fresh.length === 0 && knownHue !== null) {
-      return {
-        feedUrl,
-        ok: true,
-        churchId,
-        pastorId: `p-${churchId.slice(2)}`,
-        added: 0,
-        skipped: feed.episodes.length,
-      };
+      // Upsert the church + pastor (idempotent on the identity-based id, so
+      // multiple feeds for the same church merge into one row).
+      const churchUpsert = await admin
+        .from("churches")
+        .upsert(church, { onConflict: "id" });
+      if (churchUpsert.error) throw new Error(`church upsert: ${churchUpsert.error.message}`);
+
+      const pastorUpsert = await admin
+        .from("pastors")
+        .upsert(pastor, { onConflict: "id" });
+      if (pastorUpsert.error) throw new Error(`pastor upsert: ${pastorUpsert.error.message}`);
+
+      churchId = church.id;
+      pastorId = pastor.id;
+      if (feedRowId) {
+        await admin
+          .from("feeds")
+          .update({ church_id: churchId, pastor_id: pastorId })
+          .eq("id", feedRowId);
+      }
     }
-
-    const hue = knownHue ?? (await deriveHue(feed));
-    const { church, pastor } = feedToChurchAndPastor(feed, hue);
-
-    // Upsert the church + host pastor (idempotent on the deterministic id).
-    const churchUpsert = await admin
-      .from("churches")
-      .upsert(church, { onConflict: "id" });
-    if (churchUpsert.error) throw new Error(`church upsert: ${churchUpsert.error.message}`);
-
-    const pastorUpsert = await admin
-      .from("pastors")
-      .upsert(pastor, { onConflict: "id" });
-    if (pastorUpsert.error) throw new Error(`pastor upsert: ${pastorUpsert.error.message}`);
 
     if (fresh.length === 0) {
       return {
         feedUrl,
         ok: true,
-        churchId: church.id,
-        pastorId: pastor.id,
+        churchId,
+        pastorId: pastorId ?? undefined,
         added: 0,
         skipped: feed.episodes.length,
       };
@@ -117,7 +154,7 @@ export async function ingestFeed(
     for (const episode of fresh) {
       const enrichment = await enrichEpisode(feed.title, episode.title, episode.description);
       rows.push(
-        episodeToSermon(feed, episode, church.id, pastor.id, hue, enrichment)
+        episodeToSermon(feed, episode, churchId, pastorId ?? churchId, hue, enrichment)
       );
     }
 
@@ -129,8 +166,8 @@ export async function ingestFeed(
     return {
       feedUrl,
       ok: true,
-      churchId: church.id,
-      pastorId: pastor.id,
+      churchId,
+      pastorId: pastorId ?? undefined,
       added: rows.length,
       skipped: feed.episodes.length - fresh.length,
     };
