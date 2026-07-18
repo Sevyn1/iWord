@@ -8,6 +8,7 @@ import {
 } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
 import { ChurchWatermark } from "@/components/ChurchWatermark";
+import { ChurchPlaque } from "@/components/ChurchPlaque";
 import { FollowButton } from "@/components/FollowButton";
 import { isFollowingPastor } from "@/lib/follows";
 import { getCurrentAccount } from "@/lib/account";
@@ -109,31 +110,12 @@ export default async function PastorPage({
               {pastor.name}
             </h1>
             {church ? (
-              <Link
+              <ChurchPlaque
                 href={`/churches/${church.slug}`}
-                className="group mt-3 inline-flex items-center gap-3 rounded-2xl bg-white pl-3 pr-4 py-2.5 shadow-lg shadow-black/25 ring-1 ring-black/5 hover:shadow-xl transition-shadow"
-              >
-                {church.logoUrl || church.artworkUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={(church.logoUrl ?? church.artworkUrl) as string}
-                    alt=""
-                    className="h-14 w-auto max-w-[180px] object-contain shrink-0"
-                  />
-                ) : (
-                  <span
-                    className="w-12 h-12 rounded-xl shrink-0"
-                    style={{
-                      background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
-                    }}
-                    aria-hidden="true"
-                  />
-                )}
-                <span className="h-9 w-px bg-black/10 shrink-0" aria-hidden="true" />
-                <span className="font-semibold text-[#1B2138] leading-tight group-hover:text-[#1B2138]/80 transition-colors">
-                  {pastor.church}
-                </span>
-              </Link>
+                logoSrc={(church.logoUrl ?? church.artworkUrl) as string | undefined}
+                name={pastor.church}
+                fallbackHue={church.hue}
+              />
             ) : (
               <p className="text-white/85 mt-2.5 text-lg">{pastor.church}</p>
             )}
