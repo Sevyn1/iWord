@@ -8,6 +8,7 @@ import {
 } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
 import { ChurchLogo } from "@/components/ChurchLogo";
+import { ChurchWatermark } from "@/components/ChurchWatermark";
 import { FollowButton } from "@/components/FollowButton";
 import { isFollowingPastor } from "@/lib/follows";
 import { getCurrentAccount } from "@/lib/account";
@@ -81,6 +82,10 @@ export default async function PastorPage({
           background: `radial-gradient(90% 130% at 100% 0%, hsl(${(hue + 35) % 360} 64% 44% / 0.65), transparent 70%), linear-gradient(165deg, hsl(${hue} 56% 32%) 0%, hsl(${hue} 52% 19%) 100%)`,
         }}
       >
+        {/* Church logo watermark — only for clean transparent marks, tinted by the section colour */}
+        {church && (church.logoUrl || church.artworkUrl) && (
+          <ChurchWatermark src={(church.logoUrl ?? church.artworkUrl) as string} />
+        )}
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 flex flex-col sm:flex-row items-start sm:items-end gap-6">
           {pastor.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
