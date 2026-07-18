@@ -85,9 +85,17 @@ export function ChurchLogo({
       src={src}
       alt={alt}
       loading="lazy"
-      className={`${className ?? ""} ${
-        needsLight ? "bg-white/95 rounded-2xl p-2" : ""
-      }`.trim()}
+      className={className ?? ""}
+      style={
+        needsLight
+          ? {
+              // Emboss dark/mixed logos with a soft white halo so they lift off
+              // the dark banner without a stark white box behind them.
+              filter:
+                "drop-shadow(0 0 1.5px rgba(255,255,255,0.95)) drop-shadow(0 0 3px rgba(255,255,255,0.75)) drop-shadow(0 2px 5px rgba(0,0,0,0.35))",
+            }
+          : undefined
+      }
     />
   );
 }
