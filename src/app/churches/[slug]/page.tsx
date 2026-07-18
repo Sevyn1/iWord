@@ -82,14 +82,12 @@ export default async function ChurchPage({
           </Link>
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
             {logo ? (
-              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40 overflow-hidden bg-white flex items-center justify-center p-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logo}
-                  alt={church.name}
-                  className="max-w-full max-h-full object-contain"
-                />
-              </div>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logo}
+                alt={church.name}
+                className="h-24 sm:h-32 w-auto max-w-[60%] object-contain object-left shrink-0 drop-shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
+              />
             ) : (
               <div
                 className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl flex items-center justify-center text-3xl font-semibold text-white ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40"
