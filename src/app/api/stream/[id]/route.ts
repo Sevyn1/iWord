@@ -110,11 +110,19 @@ export async function GET(
   // way we redirect so object storage / the source serves the bytes (and Range
   // requests) directly — the serverless function never proxies the audio.
   const isExternal = /^https?:\/\//i.test(sermon.audioUrl);
-  const target = isExternal
+  let target = isExternal
     ? sermon.audioUrl
     : await getSignedSermonUrl(path.basename(sermon.audioUrl));
   if (!target) {
     return NextResponse.json({ error: "audio_unavailable" }, { status: 503 });
+  }
+
+  // A browser on our HTTPS site will refuse to load an insecure http:// audio
+  // resource (mixed content), so some feeds' enclosures won't play. Resolve the
+  // redirect chain server-side to obtain the final URL, which is virtually
+  // always HTTPS, and hand the listener that instead.
+  if (/^http:\/\//i.test(target)) {
+    target = (await resolveHttpsUrl(target)) ?? target.replace(/^http:\/\//i, "https://");
   }
 
   return NextResponse.redirect(target, {
@@ -127,4 +135,25 @@ async function recordListen(userId: string, sermonId: string) {
   const supabase = await createClient();
   if (!supabase) return;
   await supabase.from("listens").insert({ user_id: userId, sermon_id: sermonId });
+}
+
+/**
+ * Follow an insecure http:// enclosure's redirects server-side to discover the
+ * final URL (podcast tracking links almost always land on an HTTPS asset). We
+ * try a HEAD first (cheap), then fall back to a ranged GET for hosts that don't
+ * support HEAD. Returns the resolved URL only if it's HTTPS, else null.
+ */
+async function resolveHttpsUrl(url: string): Promise<string | null> {
+  for (const init of [
+    { method: "HEAD" as const },
+    { method: "GET" as const, headers: { Range: "bytes=0-0" } },
+  ]) {
+    try {
+      const res = await fetch(url, { ...init, redirect: "follow" });
+      if (res.ok && /^https:\/\//i.test(res.url)) return res.url;
+    } catch {
+      /* try next strategy */
+    }
+  }
+  return null;
 }
