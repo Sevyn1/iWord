@@ -10,10 +10,8 @@ import {
 import { getMonthlyListenedIds } from "@/lib/listens";
 import { getSignedSermonUrl } from "@/lib/storage";
 import {
-  ANON_MONTHLY_STREAMS,
   RATE_LIMIT_MAX,
   RATE_LIMIT_WINDOW_SECONDS,
-  anonymousMonthlyIds,
   getClientIp,
   hashIp,
   recentHitCount,
@@ -31,8 +29,8 @@ import {
  * - Paid plans: always allowed.
  * - Free plans: allowed if the sermon was already streamed this month, or if
  *   they're still under the monthly limit. Otherwise 403.
- * - Signed-out users: allowed up to a per-IP monthly sample cap (there's no
- *   server identity to track, so the free cap is enforced by IP instead).
+ * - Signed-out users: allowed to preview any sermon; the client-side preview
+ *   window is the real limit for anonymous listeners.
  *
  * On top of the plan/quota gate, every stream start is rate-limited per IP to
  * stop bulk harvesting of the signed URLs (429 when the window is exceeded).
@@ -63,21 +61,16 @@ export async function GET(
   } else if (account) {
     const monthly = new Set(await getMonthlyListenedIds());
     allowed = monthly.has(sermon.id) || monthly.size < FREE_MONTHLY_STREAMS;
-  } else if (ipHash) {
-    // Anonymous: cap distinct sermons per IP per month.
-    const monthly = new Set(await anonymousMonthlyIds(ipHash));
-    allowed = monthly.has(sermon.id) || monthly.size < ANON_MONTHLY_STREAMS;
   } else {
-    // No identity and no resolvable IP (unusual) — allow this single request.
+    // Signed-out visitors may preview any sermon; the client-side preview
+    // window is the real limit, and the per-IP rate limit below still guards
+    // against bulk harvesting of the signed URLs.
     allowed = true;
   }
 
   if (!allowed) {
     return NextResponse.json(
-      {
-        error: "stream_limit",
-        limit: account ? FREE_MONTHLY_STREAMS : ANON_MONTHLY_STREAMS,
-      },
+      { error: "stream_limit", limit: FREE_MONTHLY_STREAMS },
       { status: 403 }
     );
   }

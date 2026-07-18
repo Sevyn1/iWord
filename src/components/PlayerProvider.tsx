@@ -7,7 +7,7 @@ import type { Sermon } from "@/lib/types";
 
 /** How long a signed-out visitor may preview a sermon before we prompt them to
  * create an account or sign in to keep listening. */
-const ANON_PREVIEW_SECONDS = 30;
+const ANON_PREVIEW_SECONDS = 90;
 
 type PlayerContextValue = {
   current: Sermon | null;
