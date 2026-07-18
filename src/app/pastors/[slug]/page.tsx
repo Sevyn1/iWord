@@ -118,11 +118,11 @@ export default async function PastorPage({
                   <ChurchLogo
                     src={(church.logoUrl ?? church.artworkUrl) as string}
                     alt=""
-                    className="h-20 w-auto max-w-[300px] object-contain object-left shrink-0"
+                    className="h-14 w-auto max-w-[220px] object-contain object-left shrink-0"
                   />
                 ) : (
                   <span
-                    className="w-20 h-20 rounded-2xl shrink-0 ring-1 ring-white/30"
+                    className="w-14 h-14 rounded-xl shrink-0 ring-1 ring-white/30"
                     style={{
                       background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
                     }}
