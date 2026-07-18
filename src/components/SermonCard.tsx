@@ -33,6 +33,7 @@ export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
               label={sermon.scripture}
               size={compact ? "sm" : "md"}
               hideText
+              imageUrl={sermon.imageUrl}
               className="!ring-0 transition-transform duration-500 group-hover:scale-[1.03]"
             />
             {/* scripture ref chip */}
@@ -73,13 +74,26 @@ export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
         {pastor && (
           <Link
             href={`/pastors/${pastor.slug}`}
-            className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-white ring-1 ring-line hover:ring-gold transition"
-            style={{
-              background: `linear-gradient(135deg, hsl(${pastor.hue},60%,32%), hsl(${(pastor.hue + 30) % 360},65%,18%))`,
-            }}
+            className="shrink-0 w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-xs font-semibold text-white ring-1 ring-line hover:ring-gold transition"
+            style={
+              pastor.imageUrl
+                ? undefined
+                : {
+                    background: `linear-gradient(135deg, hsl(${pastor.hue},60%,32%), hsl(${(pastor.hue + 30) % 360},65%,18%))`,
+                  }
+            }
             aria-label={pastor.name}
           >
-            {pastor.initials}
+            {pastor.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={pastor.imageUrl}
+                alt={pastor.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              pastor.initials
+            )}
           </Link>
         )}
         <div className="min-w-0">

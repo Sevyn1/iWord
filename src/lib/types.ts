@@ -100,6 +100,8 @@ export type Sermon = {
   /** Hue used to seed the thumbnail gradient. */
   hue: number;
   viewsThisWeek: number;
+  /** Cover art for the sermon (its church's podcast/brand artwork). */
+  imageUrl?: string;
   /** AI-generated 60s excerpt URL (optional; same file in demo). */
   excerptUrl?: string;
   /**

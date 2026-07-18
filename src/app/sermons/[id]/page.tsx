@@ -78,7 +78,7 @@ export default async function SermonDetailPage({
       </nav>
 
       <div className="grid lg:grid-cols-[1.1fr_1fr] gap-8 items-start">
-        <Thumbnail title={sermon.title} hue={sermon.hue} label={sermon.scripture} size="lg" />
+        <Thumbnail title={sermon.title} hue={sermon.hue} label={sermon.scripture} size="lg" imageUrl={sermon.imageUrl} />
         <div>
           <h1 className="font-display text-3xl sm:text-4xl text-cream leading-tight">
             {sermon.title}
