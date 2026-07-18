@@ -149,6 +149,7 @@ export type SermonInsert = {
   summary: string;
   hue: number;
   views_this_week: number;
+  image_url: string | null;
   source: "podcast";
   source_ref: string;
   source_url: string | null;
@@ -248,6 +249,8 @@ export function episodeToSermon(
     summary: enrichment.summary,
     hue,
     views_this_week: 0,
+    // Prefer the episode's own artwork; fall back to the show's cover art.
+    image_url: episode.artworkUrl || feed.artworkUrl || null,
     source: "podcast",
     source_ref: episode.sourceRef,
     source_url: episode.sourceUrl || null,

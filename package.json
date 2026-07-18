@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "upload:audio": "node --env-file=.env.local scripts/upload-audio.mjs",
-    "setup:stripe": "node --env-file=.env.local scripts/setup-stripe.mjs"
+    "setup:stripe": "node --env-file=.env.local scripts/setup-stripe.mjs",
+    "backfill:sermon-art": "node --env-file=.env.local scripts/backfill-sermon-art.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
