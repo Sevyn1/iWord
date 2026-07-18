@@ -99,14 +99,18 @@ export default async function ChurchPage({
               <h1 className="font-display text-3xl sm:text-5xl text-white leading-tight mt-1">
                 {church.name}
               </h1>
-              <p className="text-white/75 mt-1 flex items-center gap-1.5">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0">
-                  <path d="M12 21s-7-5.686-7-11a7 7 0 1114 0c0 5.314-7 11-7 11z" stroke="currentColor" strokeWidth="1.6" />
-                  <circle cx="12" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-                {church.location}
-                {church.founded ? ` · Est. ${church.founded}` : ""}
-              </p>
+              {(church.location || church.founded) && (
+                <p className="text-white/75 mt-1 flex items-center gap-1.5">
+                  {church.location && (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0">
+                      <path d="M12 21s-7-5.686-7-11a7 7 0 1114 0c0 5.314-7 11-7 11z" stroke="currentColor" strokeWidth="1.6" />
+                      <circle cx="12" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.6" />
+                    </svg>
+                  )}
+                  {church.location}
+                  {church.location && church.founded ? ` · Est. ${church.founded}` : church.founded ? `Est. ${church.founded}` : ""}
+                </p>
+              )}
               <p className="mt-3 text-white/80 max-w-2xl">{church.description}</p>
               <div className="mt-5 flex flex-wrap items-center gap-2.5">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 ring-1 ring-white/15 px-3.5 py-1.5 text-sm text-white">

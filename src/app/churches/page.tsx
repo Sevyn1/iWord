@@ -133,14 +133,18 @@ export default async function ChurchesPage({
                 <h2 className="mt-3 font-display text-xl text-cream group-hover:text-gold transition-colors">
                   {c.name}
                 </h2>
-                <p className="text-cream-muted text-sm mt-0.5 flex items-center gap-1.5">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-cream-faint">
-                    <path d="M12 21s-7-5.686-7-11a7 7 0 1114 0c0 5.314-7 11-7 11z" stroke="currentColor" strokeWidth="1.6" />
-                    <circle cx="12" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.6" />
-                  </svg>
-                  {c.location}
-                  {c.founded ? ` · Est. ${c.founded}` : ""}
-                </p>
+                {(c.location || c.founded) && (
+                  <p className="text-cream-muted text-sm mt-0.5 flex items-center gap-1.5">
+                    {c.location && (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-cream-faint">
+                        <path d="M12 21s-7-5.686-7-11a7 7 0 1114 0c0 5.314-7 11-7 11z" stroke="currentColor" strokeWidth="1.6" />
+                        <circle cx="12" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.6" />
+                      </svg>
+                    )}
+                    {c.location}
+                    {c.location && c.founded ? ` · Est. ${c.founded}` : c.founded ? `Est. ${c.founded}` : ""}
+                  </p>
+                )}
                 <p className="text-cream-muted/80 text-sm mt-2 line-clamp-2">
                   {c.description}
                 </p>
