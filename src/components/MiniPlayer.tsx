@@ -21,12 +21,21 @@ export function MiniPlayer() {
       </div>
       <div className="mx-auto max-w-7xl px-3 sm:px-6 py-2.5 flex items-center gap-3 sm:gap-5">
         <div
-          className="w-11 h-11 rounded-md shrink-0"
+          className="relative w-11 h-11 rounded-md shrink-0 overflow-hidden"
           style={{
             background: `linear-gradient(135deg, hsl(${current.hue},65%,30%), hsl(${(current.hue + 30) % 360},70%,18%))`,
           }}
           aria-hidden
-        />
+        >
+          {current.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={current.imageUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
+        </div>
         <div className="min-w-0 flex-1 sm:flex-none sm:w-56 md:w-64">
           <Link
             href={`/sermons/${current.slug}`}
