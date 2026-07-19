@@ -10,6 +10,7 @@ import {
 import { getCurrentAccount, isPaidPlan } from "@/lib/account";
 import { isFollowingPastor } from "@/lib/follows";
 import { Thumbnail } from "@/components/Thumbnail";
+import { PastorAvatar } from "@/components/PastorAvatar";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { FollowButton } from "@/components/FollowButton";
 import { SermonCard } from "@/components/SermonCard";
@@ -87,13 +88,16 @@ export default async function SermonDetailPage({
             <div className="mt-4 flex items-center gap-3">
               <Link
                 href={`/pastors/${pastor.slug}`}
-                className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold text-white ring-1 ring-line"
-                style={{
-                  background: `linear-gradient(135deg, hsl(${pastor.hue},60%,32%), hsl(${(pastor.hue + 30) % 360},65%,18%))`,
-                }}
+                className="shrink-0"
                 aria-label={pastor.name}
               >
-                {pastor.initials}
+                <PastorAvatar
+                  imageUrl={pastor.imageUrl}
+                  name={pastor.name}
+                  initials={pastor.initials}
+                  hue={pastor.hue}
+                  className="w-11 h-11 rounded-full text-sm ring-1 ring-line"
+                />
               </Link>
               <div>
                 <Link href={`/pastors/${pastor.slug}`} className="text-cream font-medium hover:text-gold">

@@ -5,6 +5,7 @@ import { getFollowedPastorIds } from "@/lib/follows";
 import { getRecentSermonIds } from "@/lib/listens";
 import { getAllPastors, getAllSermons, getSermonById } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
+import { PastorAvatar } from "@/components/PastorAvatar";
 
 export const metadata = { title: "Following" };
 
@@ -72,14 +73,13 @@ export default async function FollowingPage() {
                   href={`/pastors/${p.slug}`}
                   className="flex items-center gap-2.5 rounded-full bg-ink-2 ring-1 ring-line pl-1.5 pr-4 py-1.5 hover:bg-ink-3 transition-colors"
                 >
-                  <span
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-white ring-1 ring-line shrink-0"
-                    style={{
-                      background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
-                    }}
-                  >
-                    {p.initials}
-                  </span>
+                  <PastorAvatar
+                    imageUrl={p.imageUrl}
+                    name={p.name}
+                    initials={p.initials}
+                    hue={p.hue}
+                    className="w-9 h-9 rounded-full text-xs ring-1 ring-line shrink-0"
+                  />
                   <span className="text-sm text-cream">{p.name}</span>
                 </Link>
               ))}

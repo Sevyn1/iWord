@@ -9,6 +9,7 @@ import {
 import { SermonCard } from "@/components/SermonCard";
 import { ChurchWatermark } from "@/components/ChurchWatermark";
 import { ChurchPlaque } from "@/components/ChurchPlaque";
+import { PastorPhoto } from "@/components/PastorPhoto";
 import { FollowButton } from "@/components/FollowButton";
 import { isFollowingPastor } from "@/lib/follows";
 import { getCurrentAccount } from "@/lib/account";
@@ -87,23 +88,12 @@ export default async function PastorPage({
           <ChurchWatermark src={(church.logoUrl ?? church.artworkUrl) as string} />
         )}
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 flex flex-col sm:flex-row items-start sm:items-end gap-6">
-          {pastor.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={pastor.imageUrl}
-              alt={pastor.name}
-              className="w-28 h-28 sm:w-36 sm:h-36 rounded-full object-cover ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40 bg-white/10"
-            />
-          ) : (
-            <div
-              className="w-28 h-28 sm:w-36 sm:h-36 rounded-full flex items-center justify-center text-3xl font-semibold text-white ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40"
-              style={{
-                background: `linear-gradient(135deg, hsl(${hue},68%,52%), hsl(${(hue + 30) % 360},72%,30%))`,
-              }}
-            >
-              {pastor.initials}
-            </div>
-          )}
+          <PastorPhoto
+            imageUrl={pastor.imageUrl}
+            name={pastor.name}
+            initials={pastor.initials}
+            hue={hue}
+          />
           <div className="flex-1 min-w-0">
             <p className="text-xs uppercase tracking-[0.18em] text-[#EBC67A]">{pastor.title}</p>
             <h1 className="font-display text-3xl sm:text-5xl text-white leading-tight mt-1">

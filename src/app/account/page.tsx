@@ -6,6 +6,7 @@ import { getRecentSermonIds, getMonthlyListenedIds } from "@/lib/listens";
 import { FREE_MONTHLY_STREAMS } from "@/lib/account";
 import { getAllPastors, getSermonById } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
+import { PastorAvatar } from "@/components/PastorAvatar";
 import { signOut } from "@/app/auth/actions";
 import { isStripeConfigured } from "@/lib/stripe";
 import { manageBilling } from "@/app/pricing/actions";
@@ -195,14 +196,13 @@ export default async function AccountPage() {
                   href={`/pastors/${p.slug}`}
                   className="flex items-center gap-2.5 rounded-full bg-ink-2 ring-1 ring-line pl-1.5 pr-4 py-1.5 hover:bg-ink-3 transition-colors"
                 >
-                  <span
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white ring-1 ring-line shrink-0"
-                    style={{
-                      background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
-                    }}
-                  >
-                    {p.initials}
-                  </span>
+                  <PastorAvatar
+                    imageUrl={p.imageUrl}
+                    name={p.name}
+                    initials={p.initials}
+                    hue={p.hue}
+                    className="w-8 h-8 rounded-full text-[11px] ring-1 ring-line shrink-0"
+                  />
                   <span className="text-sm text-cream">{p.name}</span>
                 </Link>
               ))}
@@ -241,14 +241,13 @@ export default async function AccountPage() {
                 href={`/pastors/${p.slug}`}
                 className="flex items-center gap-4 rounded-2xl bg-ink-2 ring-1 ring-line p-4 hover:bg-ink-3 transition-colors"
               >
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-sm font-semibold text-white ring-1 ring-line shrink-0"
-                  style={{
-                    background: `linear-gradient(135deg, hsl(${p.hue},65%,38%), hsl(${(p.hue + 30) % 360},70%,22%))`,
-                  }}
-                >
-                  {p.initials}
-                </div>
+                <PastorAvatar
+                  imageUrl={p.imageUrl}
+                  name={p.name}
+                  initials={p.initials}
+                  hue={p.hue}
+                  className="w-14 h-14 rounded-full text-sm ring-1 ring-line shrink-0"
+                />
                 <div className="min-w-0">
                   <div className="text-cream font-medium truncate">{p.name}</div>
                   <div className="text-cream-muted text-sm truncate">{p.church}</div>

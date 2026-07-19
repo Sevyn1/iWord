@@ -5,6 +5,7 @@ import type { Sermon } from "@/lib/types";
 import { usePlayer } from "./PlayerProvider";
 import { formatDuration, formatCount } from "@/lib/format";
 import { Waveform } from "./Waveform";
+import { PastorAvatar } from "./PastorAvatar";
 
 type Props = { sermon: Sermon };
 
@@ -50,14 +51,14 @@ export function AudioPlayer({ sermon }: Props) {
     <div className="rounded-2xl bg-gradient-to-b from-ink-3 to-ink-2 ring-1 ring-line p-5 sm:p-6 shadow-lg shadow-black/10">
       <div className="flex items-center gap-3">
         {pastor && (
-          <div
-            className="hidden sm:flex w-12 h-12 shrink-0 rounded-full items-center justify-center text-xs font-semibold text-white ring-1 ring-line"
-            style={{
-              background: `linear-gradient(135deg, hsl(${pastor.hue},60%,32%), hsl(${(pastor.hue + 30) % 360},65%,18%))`,
-            }}
-            aria-hidden
-          >
-            {pastor.initials}
+          <div className="hidden sm:block" aria-hidden>
+            <PastorAvatar
+              imageUrl={pastor.imageUrl}
+              name={pastor.name}
+              initials={pastor.initials}
+              hue={pastor.hue}
+              className="w-12 h-12 shrink-0 rounded-full text-xs ring-1 ring-line"
+            />
           </div>
         )}
         <div className="min-w-0 flex-1">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SermonCard } from "@/components/SermonCard";
 import { getRecent, getTrending, getAllSermons, getAllPastors } from "@/lib/content";
 import { getFollowedPastorIds } from "@/lib/follows";
+import { PastorAvatar } from "@/components/PastorAvatar";
 import { resolveCountry } from "@/lib/geo";
 import { Logo } from "@/components/Logo";
 import { Thumbnail } from "@/components/Thumbnail";
@@ -137,14 +138,13 @@ export default async function HomePage() {
                   <div className="absolute inset-x-5 bottom-5">
                     {heroPastor && (
                       <div className="flex items-center gap-3 mb-3">
-                        <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold text-white ring-1 ring-white/30"
-                          style={{
-                            background: `linear-gradient(135deg, hsl(${heroPastor.hue},65%,38%), hsl(${(heroPastor.hue + 30) % 360},70%,22%))`,
-                          }}
-                        >
-                          {heroPastor.initials}
-                        </div>
+                        <PastorAvatar
+                          imageUrl={heroPastor.imageUrl}
+                          name={heroPastor.name}
+                          initials={heroPastor.initials}
+                          hue={heroPastor.hue}
+                          className="w-10 h-10 rounded-full text-xs ring-1 ring-white/30"
+                        />
                         <div className="text-sm">
                           <div className="text-white font-medium">{heroPastor.name}</div>
                           <div className="text-white/70 text-xs">{heroPastor.church}</div>
@@ -236,14 +236,13 @@ export default async function HomePage() {
                   style={{ background: `radial-gradient(closest-side, hsl(${p.hue},80%,55%), transparent)` }}
                   aria-hidden
                 />
-                <div
-                  className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center text-xl font-semibold text-white ring-1 ring-line group-hover:ring-gold transition shadow-md shadow-black/10"
-                  style={{
-                    background: `linear-gradient(135deg, hsl(${p.hue},60%,32%), hsl(${(p.hue + 35) % 360},65%,18%))`,
-                  }}
-                >
-                  {p.initials}
-                </div>
+                <PastorAvatar
+                  imageUrl={p.imageUrl}
+                  name={p.name}
+                  initials={p.initials}
+                  hue={p.hue}
+                  className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-full text-xl ring-1 ring-line group-hover:ring-gold transition shadow-md shadow-black/10"
+                />
               </div>
               <div className="mt-3">
                 <div className="text-cream font-medium leading-tight group-hover:text-gold transition-colors">{p.name}</div>
