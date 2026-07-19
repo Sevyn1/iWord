@@ -59,9 +59,11 @@ export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
             </svg>
           )}
         </button>
-        <span className="absolute left-3 bottom-3 text-[11px] font-medium px-2 py-0.5 rounded-md bg-ink/85 text-cream tabular-nums ring-1 ring-line/60">
-          {formatDuration(sermon.durationSec)}
-        </span>
+        {sermon.durationSec > 0 && (
+          <span className="absolute left-3 bottom-3 text-[11px] font-medium px-2 py-0.5 rounded-md bg-ink/85 text-cream tabular-nums ring-1 ring-line/60">
+            {formatDuration(sermon.durationSec)}
+          </span>
+        )}
         {isActive && (
           <span className="absolute right-3 top-3 text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full bg-leaf/20 text-leaf ring-1 ring-leaf/40 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-leaf live-dot" />

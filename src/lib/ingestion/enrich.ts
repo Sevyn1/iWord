@@ -546,3 +546,82 @@ export async function extractPastorHeadshot(
   }
   return null;
 }
+
+/** Fetch + parse JSON with a short timeout and the Wikimedia-required UA. */
+async function fetchJson(url: string): Promise<Record<string, unknown> | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8_000);
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "iWordBot/1.0 (+https://iword.app)" },
+      redirect: "follow",
+      signal: controller.signal,
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as Record<string, unknown>;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/** Descriptions we accept as evidence the page is the right religious figure. */
+const RELIGIOUS_FIGURE =
+  /\b(pastor|theolog|preacher|minister|evangelist|clergy|apologist|bishop|reverend|priest|christian)\b/i;
+
+/**
+ * Look up a verified, freely-licensed portrait from Wikipedia/Wikimedia Commons
+ * for a well-known figure. Only returns an image when the matched page's
+ * surname matches and its description clearly marks a religious figure, so we
+ * never attach the wrong person's photo. This is the reliable source for public
+ * preachers when the church website has no name-matched headshot; returns null
+ * for anyone without a confident, on-Wikipedia match (e.g. local pastors).
+ */
+export async function fetchWikimediaHeadshot(
+  name: string
+): Promise<string | null> {
+  const q = name.trim();
+  if (q.length < 3) return null;
+
+  const tokens = q
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .filter((t) => t.length > 1);
+  if (tokens.length === 0) return null;
+  const surname = tokens[tokens.length - 1];
+
+  const searchUrl =
+    "https://en.wikipedia.org/w/api.php?action=query&list=search" +
+    `&srsearch=${encodeURIComponent(`${q} pastor theologian preacher`)}` +
+    "&srlimit=5&format=json&origin=*";
+  const search = await fetchJson(searchUrl);
+  const hits =
+    ((search?.query as Record<string, unknown> | undefined)?.search as
+      | Array<{ title?: string }>
+      | undefined) ?? [];
+
+  for (const hit of hits) {
+    const title = hit.title?.trim();
+    // Require the surname to appear in the page title before trusting it.
+    if (!title || !title.toLowerCase().includes(surname)) continue;
+
+    const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+      title.replace(/ /g, "_")
+    )}`;
+    const s = await fetchJson(summaryUrl);
+    if (!s || s.type === "disambiguation") continue;
+
+    const desc = `${(s.description as string) ?? ""} ${(s.extract as string) ?? ""}`;
+    if (!RELIGIOUS_FIGURE.test(desc)) continue;
+
+    const thumb = (s.thumbnail as { source?: string } | undefined)?.source;
+    const original = (s.originalimage as { source?: string } | undefined)?.source;
+    const img = thumb || original;
+    if (img && /^https:\/\/upload\.wikimedia\.org\//.test(img) && looksLikeImage(img)) {
+      return img;
+    }
+  }
+  return null;
+}

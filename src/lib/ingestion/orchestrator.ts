@@ -6,6 +6,7 @@ import {
   enrichEpisode,
   extractChurchLogo,
   extractPastorHeadshot,
+  fetchWikimediaHeadshot,
   resolveChurchIdentity,
 } from "./enrich";
 import { discover } from "./discovery";
@@ -125,14 +126,19 @@ export async function ingestFeed(
 
       // Best-effort: pull the church's real logo and the pastor's headshot from
       // the church website. Both are optional and only set when found (a
-      // headshot only when its alt/caption clearly names the pastor).
+      // headshot only when its alt/caption clearly names the pastor). When the
+      // site yields no headshot, fall back to a verified, freely-licensed
+      // Wikipedia/Wikimedia portrait (name + religious-figure checked).
       const pastorName = identity.pastorName || feed.author?.trim() || "";
-      const [logoUrl, headshotUrl] = identity.website
+      const [logoUrl, siteHeadshot] = identity.website
         ? await Promise.all([
             extractChurchLogo(identity.website),
             extractPastorHeadshot(identity.website, pastorName),
           ])
         : [null, null];
+      const headshotUrl =
+        siteHeadshot ||
+        (pastorName ? await fetchWikimediaHeadshot(pastorName) : null);
 
       const { church, pastor } = feedToChurchAndPastor(feed, identity, hue, {
         logoUrl,
