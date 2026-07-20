@@ -53,6 +53,20 @@ export function PlayerProvider({
   const [duration, setDuration] = React.useState(0);
   const listenersRef = React.useRef<Set<(t: number) => void>>(new Set());
 
+  // Latest current sermon, readable from the audio event handlers below.
+  const currentRef = React.useRef<Sermon | null>(null);
+  currentRef.current = current;
+
+  // A transient "couldn't play" message shown when playback genuinely fails
+  // (broken asset, network error) so failures aren't silently swallowed.
+  const [toast, setToast] = React.useState<string | null>(null);
+  const toastTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showToast = React.useCallback((msg: string) => {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 6000);
+  }, []);
+
   const isPaid = plan === "devoted" || plan === "patron";
   // Distinct sermons streamed this month (seeded from the server, grows as the
   // user plays new ones in this session).
@@ -97,10 +111,13 @@ export function PlayerProvider({
       el.src = `/api/stream/${sermon.id}`;
       el.load();
     }
-    void el.play().catch(() => {
-      /* user gesture missing or asset not yet ready */
+    void el.play().catch((err: unknown) => {
+      // Autoplay blocked or a newer load interrupted this one — both benign.
+      const name = (err as { name?: string })?.name;
+      if (name === "NotAllowedError" || name === "AbortError") return;
+      showToast("Couldn’t play this sermon. Please try again.");
     });
-  }, [current, isPaid, freeMonthlyLimit, signedOut]);
+  }, [current, isPaid, freeMonthlyLimit, signedOut, showToast]);
 
   const togglePlay = React.useCallback(() => {
     const el = audioRef.current;
@@ -150,19 +167,28 @@ export function PlayerProvider({
     };
     const onMeta = () => setDuration(el.duration || 0);
     const onEnd = () => setIsPlaying(false);
+    // The media resource failed to load or decode (broken enclosure, network
+    // error, unsupported format). Surface it instead of failing silently.
+    const onError = () => {
+      if (!currentRef.current) return;
+      setIsPlaying(false);
+      showToast("Couldn’t play this sermon. Please try again.");
+    };
     el.addEventListener("play", onPlay);
     el.addEventListener("pause", onPause);
     el.addEventListener("timeupdate", onTime);
     el.addEventListener("loadedmetadata", onMeta);
     el.addEventListener("ended", onEnd);
+    el.addEventListener("error", onError);
     return () => {
       el.removeEventListener("play", onPlay);
       el.removeEventListener("pause", onPause);
       el.removeEventListener("timeupdate", onTime);
       el.removeEventListener("loadedmetadata", onMeta);
       el.removeEventListener("ended", onEnd);
+      el.removeEventListener("error", onError);
     };
-  }, []);
+  }, [showToast]);
 
   const value = React.useMemo<PlayerContextValue>(
     () => ({
@@ -197,6 +223,34 @@ export function PlayerProvider({
           next={pathname ?? "/"}
           onClose={() => setShowPreviewGate(false)}
         />
+      )}
+      {toast && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="fixed inset-x-0 bottom-24 z-[70] flex justify-center px-4 pointer-events-none"
+        >
+          <div className="pointer-events-auto flex items-center gap-3 rounded-full bg-[#1B2138] text-white ring-1 ring-white/15 shadow-xl shadow-black/30 pl-4 pr-2 py-2.5">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose/20 text-rose">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 8v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                <circle cx="12" cy="16.5" r="1.1" fill="currentColor" />
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+              </svg>
+            </span>
+            <span className="text-sm">{toast}</span>
+            <button
+              type="button"
+              onClick={() => setToast(null)}
+              aria-label="Dismiss"
+              className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
       )}
     </PlayerContext.Provider>
   );
