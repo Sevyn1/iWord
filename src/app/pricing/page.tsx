@@ -38,6 +38,11 @@ export default async function PricingPage({
           Start free. Upgrade when iWord becomes part of your week. Cancel any
           time — you keep access through the end of your billing period.
         </p>
+        <p className="mt-3 text-sm text-cream-faint">
+          Your subscription supports iWord&rsquo;s discovery, curation, and the
+          cost of running the service. The sermons themselves remain freely
+          available from their original publishers.
+        </p>
       </header>
 
       {sp.error && (

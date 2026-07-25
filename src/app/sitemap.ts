@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: url("/pricing"), changeFrequency: "monthly", priority: 0.6 },
     { url: url("/terms"), changeFrequency: "yearly", priority: 0.3 },
     { url: url("/privacy"), changeFrequency: "yearly", priority: 0.3 },
+    { url: url("/copyright"), changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const sermonRoutes: MetadataRoute.Sitemap = sermons.map((s) => ({

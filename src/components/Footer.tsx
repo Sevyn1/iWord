@@ -32,6 +32,7 @@ export function Footer() {
             <li><Link href="#" className="hover:text-cream">For pastors</Link></li>
             <li><Link href="/terms" className="hover:text-cream">Terms of Service</Link></li>
             <li><Link href="/privacy" className="hover:text-cream">Privacy Policy</Link></li>
+            <li><Link href="/copyright" className="hover:text-cream">Copyright &amp; removal</Link></li>
           </ul>
         </div>
       </div>

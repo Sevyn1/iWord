@@ -109,6 +109,17 @@ export default function TermsPage() {
         software are owned by iWord. You receive no ownership rights by using
         the Service.
       </p>
+      <p>
+        Most audio is aggregated from publicly available podcast (RSS) feeds and
+        streamed from its original source; iWord does not claim ownership of
+        that content. Paid subscriptions pay for iWord&rsquo;s own features
+        &mdash; discovery, curation, previews, and account tools &mdash; not for
+        the underlying sermons themselves. If you are a rights holder or feed
+        owner and want your material removed, see our{" "}
+        <a href="/copyright">Copyright &amp; Content Removal</a> policy, or email
+        our designated contact at{" "}
+        <a href="mailto:copyright@iword.app">copyright@iword.app</a>.
+      </p>
 
       <h2>7. Third-party services</h2>
       <p>
