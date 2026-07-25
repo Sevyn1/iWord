@@ -42,6 +42,11 @@ export default async function SignInPage({
           <input type="hidden" name="next" value={next} />
           <Field label="Email" type="email" name="email" placeholder="you@example.com" required />
           <Field label="Password" type="password" name="password" placeholder="••••••••" required />
+          <div className="text-right -mt-1">
+            <Link href="/auth/forgot-password" className="text-xs text-cream-muted hover:text-gold transition-colors">
+              Forgot password?
+            </Link>
+          </div>
           <button
             type="submit"
             className="w-full px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot active:scale-95 transition-all"

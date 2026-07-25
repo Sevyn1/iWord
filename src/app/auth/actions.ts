@@ -21,7 +21,7 @@ async function getOrigin(): Promise<string> {
 }
 
 /** Append the `next` param to an auth page path when it's a real destination. */
-function withNext(path: string, next: string): string {
+function withNext(path: string,  next: string): string {
   return next && next !== "/"
     ? `${path}${path.includes("?") ? "&" : "?"}next=${encodeURIComponent(next)}`
     : path;
@@ -95,4 +95,66 @@ export async function signOut() {
   if (supabase) await supabase.auth.signOut();
   revalidatePath("/", "layout");
   redirect("/");
+}
+
+/**
+ * Step 1 of password recovery: email the user a reset link. The link lands on
+ * /auth/callback (which trades the code for a short-lived session) and then
+ * forwards to /auth/reset-password. We always redirect to the same "sent"
+ * state regardless of whether the address has an account, so the form can't be
+ * used to probe which emails are registered.
+ */
+export async function requestPasswordReset(formData: FormData) {
+  const supabase = await createClient();
+  if (!supabase) {
+    redirect("/auth/forgot-password?error=Supabase+is+not+configured.+See+README.");
+  }
+
+  const email = asString(formData.get("email"));
+  if (!email) {
+    redirect("/auth/forgot-password?error=Enter+your+email+address.");
+  }
+
+  const origin = await getOrigin();
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: origin
+      ? `${origin}/auth/callback?next=${encodeURIComponent("/auth/reset-password")}`
+      : undefined,
+  });
+
+  redirect("/auth/forgot-password?sent=1");
+}
+
+/**
+ * Step 2 of password recovery: set the new password. Requires the recovery
+ * session created when the emailed link was exchanged in /auth/callback.
+ */
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient();
+  if (!supabase) {
+    redirect("/auth/reset-password?error=Supabase+is+not+configured.+See+README.");
+  }
+
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) {
+    redirect("/auth/reset-password?error=Your+reset+link+has+expired.+Please+request+a+new+one.");
+  }
+
+  const password = asString(formData.get("password"));
+  const confirm = asString(formData.get("confirm"));
+
+  if (password.length < 8) {
+    redirect("/auth/reset-password?error=Password+must+be+at+least+8+characters.");
+  }
+  if (password !== confirm) {
+    redirect("/auth/reset-password?error=Passwords+do+not+match.");
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    redirect(`/auth/reset-password?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/account");
 }
