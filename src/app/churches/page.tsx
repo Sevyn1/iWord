@@ -113,22 +113,30 @@ export default async function ChurchesPage({
                 )}
               </div>
               {/* Logo z-stacked above the banner/body seam — natural aspect ratio, no tile */}
-              {c.logoUrl || c.artworkUrl ? (
-                <ChurchLogo
-                  src={(c.logoUrl ?? c.artworkUrl) as string}
-                  alt=""
-                  className="absolute left-5 top-14 z-20 h-16 w-auto max-w-[55%] object-contain object-left drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
-                />
-              ) : (
-                <div
-                  className="absolute left-5 top-14 z-20 w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-semibold text-white ring-2 ring-ink-2 shadow-lg shadow-black/20"
-                  style={{
-                    background: `linear-gradient(135deg, hsl(${c.hue},65%,38%), hsl(${(c.hue + 30) % 360},70%,22%))`,
-                  }}
-                >
-                  {c.initials}
-                </div>
-              )}
+              {(() => {
+                const placeholder = (
+                  <div
+                    className="absolute left-5 top-14 z-20 w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-semibold text-white ring-2 ring-ink-2 shadow-lg shadow-black/20"
+                    style={{
+                      background: `linear-gradient(135deg, hsl(${c.hue},65%,38%), hsl(${(c.hue + 30) % 360},70%,22%))`,
+                    }}
+                  >
+                    {c.initials}
+                  </div>
+                );
+                return c.logoUrl || c.artworkUrl ? (
+                  <ChurchLogo
+                    src={(c.logoUrl ?? c.artworkUrl) as string}
+                    fallbackSrc={c.artworkUrl}
+                    alt=""
+                    className="absolute left-5 top-14 z-20 h-16 w-auto max-w-[55%] object-contain object-left drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
+                  >
+                    {placeholder}
+                  </ChurchLogo>
+                ) : (
+                  placeholder
+                );
+              })()}
               <div className="px-5 pb-5 pt-10 flex flex-col flex-1">
                 <h2 className="font-display text-xl text-cream group-hover:text-gold transition-colors">
                   {c.name}

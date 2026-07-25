@@ -85,9 +85,19 @@ export default async function ChurchPage({
             {logo ? (
               <ChurchLogo
                 src={logo}
+                fallbackSrc={church.artworkUrl}
                 alt={church.name}
                 className="h-24 sm:h-32 w-auto max-w-[60%] object-contain object-left shrink-0 drop-shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
-              />
+              >
+                <div
+                  className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl flex items-center justify-center text-3xl font-semibold text-white ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40"
+                  style={{
+                    background: `linear-gradient(135deg, hsl(${church.hue},68%,52%), hsl(${(church.hue + 30) % 360},72%,30%))`,
+                  }}
+                >
+                  {church.initials}
+                </div>
+              </ChurchLogo>
             ) : (
               <div
                 className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl flex items-center justify-center text-3xl font-semibold text-white ring-2 ring-white/25 shrink-0 shadow-xl shadow-black/40"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Renders a church logo and, when it detects a dark logo drawn on a mostly
@@ -8,19 +8,41 @@ import { useEffect, useState } from "react";
  * stays legible over the dark banner. Opaque icons that carry their own
  * background are left untouched. Detection is best-effort: cross-origin images
  * that block canvas reads simply fall back to the bare (transparent) treatment.
+ *
+ * Self-healing: if the primary image fails to load (dead URL, 404, blocked by
+ * the browser's opaque-response protection, a host that rotated its assets, …)
+ * it transparently retries with `fallbackSrc` (the podcast artwork) and, if
+ * that fails too, renders `children` — the caller's gradient/initials
+ * placeholder — so the UI never shows a broken-image icon.
  */
 export function ChurchLogo({
   src,
+  fallbackSrc,
   alt,
   className,
+  children,
 }: {
   src: string;
+  fallbackSrc?: string;
   alt: string;
   className?: string;
+  children?: React.ReactNode;
 }) {
   const [needsLight, setNeedsLight] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [failed, setFailed] = useState(false);
+  const triedFallback = useRef(false);
+
+  // Reset when the primary source changes (e.g. a list row re-renders).
+  useEffect(() => {
+    setCurrentSrc(src);
+    setFailed(false);
+    setNeedsLight(false);
+    triedFallback.current = false;
+  }, [src]);
 
   useEffect(() => {
+    if (failed) return;
     let cancelled = false;
     setNeedsLight(false);
 
@@ -72,19 +94,33 @@ export function ChurchLogo({
     };
     // Proxy through our own origin so the canvas can read the pixels even when
     // the logo's host doesn't send CORS headers.
-    probe.src = `/api/img-probe?url=${encodeURIComponent(src)}`;
+    probe.src = `/api/img-probe?url=${encodeURIComponent(currentSrc)}`;
 
     return () => {
       cancelled = true;
     };
-  }, [src]);
+  }, [currentSrc, failed]);
+
+  // Both the primary and the fallback failed to load — show the placeholder.
+  if (failed) return <>{children ?? null}</>;
+
+  const handleError = () => {
+    if (!triedFallback.current && fallbackSrc && fallbackSrc !== currentSrc) {
+      triedFallback.current = true;
+      setNeedsLight(false);
+      setCurrentSrc(fallbackSrc);
+    } else {
+      setFailed(true);
+    }
+  };
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={src}
+      src={currentSrc}
       alt={alt}
       loading="lazy"
+      onError={handleError}
       className={`${className ?? ""} ${
         needsLight
           ? "bg-white rounded-2xl p-2.5 shadow-lg shadow-black/20 ring-1 ring-black/5"

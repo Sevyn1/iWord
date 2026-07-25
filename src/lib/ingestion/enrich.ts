@@ -342,6 +342,36 @@ async function fetchText(url: string): Promise<string> {
   }
 }
 
+/**
+ * True when a URL resolves to a live raster image (2xx + an `image/*`
+ * content-type) as seen by a real browser. Sends a browser User-Agent on
+ * purpose: some hosts serve images to browsers but 403/redirect known bot
+ * agents, and the catalog is ultimately rendered by the browser. Best-effort —
+ * any network error resolves to false so the caller simply skips the candidate.
+ */
+async function imageUrlIsLive(url: string): Promise<boolean> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8_000);
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        Accept: "image/avif,image/webp,image/png,image/*,*/*;q=0.8",
+      },
+      redirect: "follow",
+      signal: controller.signal,
+    });
+    if (!res.ok) return false;
+    const type = (res.headers.get("content-type") ?? "").toLowerCase();
+    return type.startsWith("image/");
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /** Hue of a color string, but only if it's a vivid (non-neutral) color. */
 function vividHue(input: string): number | null {
   const hsl = colorToHsl(input);
@@ -437,6 +467,14 @@ export async function extractChurchLogo(website: string): Promise<string | null>
   const html = await fetchText(website);
   if (!html) return null;
 
+  // Gather candidates in priority order, then return the first one that
+  // actually resolves to a live image — so a rotated/stale asset URL (e.g. a
+  // cache-busted path that later 404s) never lands in the catalog.
+  const candidates: string[] = [];
+  const add = (url: string | null) => {
+    if (url && !candidates.includes(url)) candidates.push(url);
+  };
+
   // 1. An <img> in the markup that is explicitly a logo.
   for (const m of html.matchAll(/<img\b[^>]*>/gi)) {
     const tag = m[0];
@@ -444,7 +482,7 @@ export async function extractChurchLogo(website: string): Promise<string | null>
     const src = imgSrc(tag);
     if (!src) continue;
     const abs = absUrl(src, website);
-    if (abs && looksLikeImage(abs) && !tooSmall(abs)) return abs;
+    if (abs && looksLikeImage(abs) && !tooSmall(abs)) add(abs);
   }
 
   // 2. apple-touch-icon (usually a clean square brand mark).
@@ -453,7 +491,7 @@ export async function extractChurchLogo(website: string): Promise<string | null>
   );
   if (apple) {
     const abs = absUrl(apple[1], website);
-    if (abs && !tooSmall(abs)) return abs;
+    if (abs && !tooSmall(abs)) add(abs);
   }
 
   // 3. Open Graph / Twitter image.
@@ -462,14 +500,18 @@ export async function extractChurchLogo(website: string): Promise<string | null>
     html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
   if (og) {
     const abs = absUrl(og[1], website);
-    if (abs && looksLikeImage(abs) && !tooSmall(abs)) return abs;
+    if (abs && looksLikeImage(abs) && !tooSmall(abs)) add(abs);
   }
 
   // 4. Any icon link as a last resort.
   const icon = html.match(/<link[^>]+rel=["'][^"']*icon[^"']*["'][^>]+href=["']([^"']+)["']/i);
   if (icon) {
     const abs = absUrl(icon[1], website);
-    if (abs && !tooSmall(abs)) return abs;
+    if (abs && !tooSmall(abs)) add(abs);
+  }
+
+  for (const url of candidates) {
+    if (await imageUrlIsLive(url)) return url;
   }
   return null;
 }
