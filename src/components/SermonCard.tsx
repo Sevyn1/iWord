@@ -16,8 +16,9 @@ type Props = {
 
 export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
   const pastor = sermon.pastor;
-  const { play, current, isPlaying } = usePlayer();
-  const isActive = current?.id === sermon.id && isPlaying;
+  const { play, togglePlay, current, isPlaying } = usePlayer();
+  const isCurrent = current?.id === sermon.id;
+  const isActive = isCurrent && isPlaying;
 
   return (
     <article
@@ -44,8 +45,8 @@ export function SermonCard({ sermon, compact = false, delayMs = 0 }: Props) {
         </Link>
         <button
           type="button"
-          onClick={() => play(sermon)}
-          aria-label={`Play ${sermon.title}`}
+          onClick={() => (isCurrent ? togglePlay() : play(sermon))}
+          aria-label={isActive ? `Pause ${sermon.title}` : `Play ${sermon.title}`}
           className="absolute right-3 bottom-3 inline-flex items-center justify-center w-11 h-11 rounded-full bg-gold text-ink shadow-lg shadow-black/40 translate-y-1 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-gold-hot active:scale-95 transition-all"
         >
           {isActive ? (
