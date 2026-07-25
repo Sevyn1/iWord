@@ -78,7 +78,8 @@ function toIso(raw: string): string {
   return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
 }
 
-/** Pull an image URL from an RSS <image> or an <itunes:image href="…">. */
+/** Pull an image URL from <itunes:image>, <image>, <media:thumbnail>, or an
+ * image-typed <media:content>. Handles single or repeated media nodes. */
 function pickImage(node: Record<string, unknown>): string | undefined {
   const itunes = node["itunes:image"];
   if (itunes && typeof itunes === "object") {
@@ -90,6 +91,30 @@ function pickImage(node: Record<string, unknown>): string | undefined {
     const url = (image as Record<string, unknown>)["url"];
     const t = text(url);
     if (t) return t;
+  }
+  // <media:thumbnail> always references an image.
+  for (const thumb of toArray(node["media:thumbnail"])) {
+    if (thumb && typeof thumb === "object") {
+      const url = (thumb as Record<string, unknown>)["@_url"];
+      if (typeof url === "string" && url) return url;
+    }
+  }
+  // <media:content> only when it is an image (by medium, type, or extension) —
+  // e.g. The Village Church attaches per-episode art here rather than itunes:image.
+  for (const mc of toArray(node["media:content"])) {
+    if (!mc || typeof mc !== "object") continue;
+    const m = mc as Record<string, unknown>;
+    const url = typeof m["@_url"] === "string" ? (m["@_url"] as string) : "";
+    if (!url) continue;
+    const medium = typeof m["@_medium"] === "string" ? m["@_medium"] : "";
+    const type = typeof m["@_type"] === "string" ? m["@_type"] : "";
+    if (
+      medium === "image" ||
+      type.startsWith("image") ||
+      /\.(png|jpe?g|webp|avif|gif)(\?|#|$)/i.test(url)
+    ) {
+      return url;
+    }
   }
   return undefined;
 }

@@ -60,6 +60,29 @@ function pickImage(node) {
     const url = text(image["url"]);
     if (url) return url;
   }
+  // <media:thumbnail> always references an image.
+  for (const thumb of toArray(node["media:thumbnail"])) {
+    if (thumb && typeof thumb === "object") {
+      const url = thumb["@_url"];
+      if (typeof url === "string" && url) return url;
+    }
+  }
+  // <media:content> only when it is an image (by medium, type, or extension) —
+  // e.g. The Village Church attaches per-episode art here rather than itunes:image.
+  for (const mc of toArray(node["media:content"])) {
+    if (!mc || typeof mc !== "object") continue;
+    const url = typeof mc["@_url"] === "string" ? mc["@_url"] : "";
+    if (!url) continue;
+    const medium = typeof mc["@_medium"] === "string" ? mc["@_medium"] : "";
+    const type = typeof mc["@_type"] === "string" ? mc["@_type"] : "";
+    if (
+      medium === "image" ||
+      type.startsWith("image") ||
+      /\.(png|jpe?g|webp|avif|gif)(\?|#|$)/i.test(url)
+    ) {
+      return url;
+    }
+  }
   return undefined;
 }
 
