@@ -33,7 +33,7 @@ export const TIERS: SubscriptionTier[] = [
     features: [
       "Everything in Devoted",
       "Early access to new sermons",
-      "Private Q&A threads with selected pastors",
+      "Private Q&A threads with selected leaders",
     ],
   },
 ];
