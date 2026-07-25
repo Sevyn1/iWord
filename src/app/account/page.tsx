@@ -182,11 +182,11 @@ export default async function AccountPage() {
             <h2 className="font-display text-lg">You&rsquo;re a Patron</h2>
           </div>
           <p className="mt-2 text-sm text-cream-muted max-w-prose">
-            Thank you for supporting the work. As a Patron, 70% of your
-            subscription goes to the pastors you follow—{" "}
+            Thank you for supporting the work. Follow the pastors who mean the
+            most to you—{" "}
             {followed.length > 0
-              ? "the ones below."
-              : "follow a pastor to direct your support."}
+              ? "they're below."
+              : "start by following one."}
           </p>
           {followed.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2.5">
