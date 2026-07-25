@@ -13,6 +13,7 @@ import { discover } from "./discovery";
 import {
   episodeToSermon,
   feedToChurchAndPastor,
+  slugify,
   type SermonInsert,
 } from "./normalize";
 import type { IngestResult, NormalizedEpisode } from "./types";
@@ -76,8 +77,68 @@ export async function ingestFeed(
     const seen = new Set(
       (existing.data ?? []).map((r) => (r as { source_ref: string }).source_ref)
     );
+
+    // Some publishers (notably Ligonier's daily "Renewing Your Mind") re-publish
+    // a just-aired episode within a day under a NEW guid AND enclosure URL,
+    // deleting the original file. De-duping by source_ref alone would (a) leave
+    // the stored row pointing at a now-dead URL and (b) re-insert the re-publish
+    // as a duplicate (new guid → new id). So we also match current feed items to
+    // existing sermons by title + publish date, and when one has rotated we
+    // refresh its audio_url/source_ref in place instead of inserting a dupe.
+    const dayKey = (title: string, publishedAt: string | null | undefined) =>
+      `${slugify(title)}|${(publishedAt ?? "").slice(0, 10)}`;
+
+    const existingInFeed = await admin
+      .from("sermons")
+      .select("id, title, audio_url, source_ref, published_at")
+      .eq("source", "podcast")
+      .eq("feed_url", feedUrl);
+    if (existingInFeed.error) {
+      throw new Error(`refresh query: ${existingInFeed.error.message}`);
+    }
+    const byTitleDate = new Map<
+      string,
+      { id: string; audioUrl: string; sourceRef: string }
+    >();
+    for (const r of existingInFeed.data ?? []) {
+      const row = r as {
+        id: string;
+        title: string;
+        audio_url: string;
+        source_ref: string;
+        published_at: string | null;
+      };
+      byTitleDate.set(dayKey(row.title, row.published_at), {
+        id: row.id,
+        audioUrl: row.audio_url,
+        sourceRef: row.source_ref,
+      });
+    }
+
+    // Refresh rotated re-publishes and mark them as seen so they are not treated
+    // as fresh below. Best-effort: a rare title+date collision must not abort the
+    // whole run, so update failures are swallowed.
+    const rotatedRefs = new Set<string>();
+    for (const e of feed.episodes) {
+      if (seen.has(e.sourceRef)) continue; // already stored under this guid
+      const match = byTitleDate.get(dayKey(e.title, e.publishedAt));
+      if (!match) continue; // genuinely new episode
+      rotatedRefs.add(e.sourceRef);
+      if (e.audioUrl && e.audioUrl !== match.audioUrl) {
+        const refresh = await admin
+          .from("sermons")
+          .update({ audio_url: e.audioUrl, source_ref: e.sourceRef })
+          .eq("id", match.id);
+        if (refresh.error) {
+          console.warn(
+            `audio refresh skipped for ${match.id}: ${refresh.error.message}`
+          );
+        }
+      }
+    }
+
     const fresh: NormalizedEpisode[] = feed.episodes
-      .filter((e) => !seen.has(e.sourceRef))
+      .filter((e) => !seen.has(e.sourceRef) && !rotatedRefs.has(e.sourceRef))
       .slice(0, MAX_NEW_PER_FEED);
 
     let hue = 0;
