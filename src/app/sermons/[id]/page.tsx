@@ -206,15 +206,15 @@ export default async function SermonDetailPage({
       </section>
 
       {transcript && (
-        <section className="mt-14">
-          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-5">
+        <section className="mt-12">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
             <h2 className="font-display text-2xl text-cream">Transcript</h2>
             <span className="text-xs text-cream-faint">
               Auto-generated — may contain minor errors
             </span>
           </div>
-          <details className="group rounded-2xl bg-ink-2 ring-1 ring-line" open>
-            <div className="px-5 py-5 space-y-4 text-[15px] text-cream-muted leading-relaxed max-h-[32rem] overflow-y-auto">
+          <details className="group rounded-2xl bg-ink-2 ring-1 ring-line">
+            <div className="px-5 py-5 space-y-4 text-[15px] text-cream-muted leading-relaxed max-h-[28rem] overflow-y-auto">
               {toParagraphs(transcript).map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
@@ -238,7 +238,7 @@ export default async function SermonDetailPage({
       )}
 
       {related.length > 0 && (
-        <section className="mt-14">
+        <section className="mt-12">
           <h2 className="font-display text-2xl text-cream mb-5">More like this</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {related.map((s) => (

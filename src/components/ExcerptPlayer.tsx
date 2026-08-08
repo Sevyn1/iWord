@@ -18,6 +18,8 @@ export function ExcerptPlayer({
   shareUrl: string;
 }) {
   const [copied, setCopied] = useState(false);
+  // Clips often start mid-sentence; a leading ellipsis reads intentional.
+  const quote = text && /^[a-z]/.test(text) ? `…${text}` : text;
 
   async function share() {
     const payload = {
@@ -42,9 +44,9 @@ export function ExcerptPlayer({
 
   return (
     <div className="mt-4">
-      {text && (
+      {quote && (
         <blockquote className="text-sm text-cream leading-relaxed border-l-2 border-gold/60 pl-3 line-clamp-4">
-          “{text}”
+          “{quote}”
         </blockquote>
       )}
       <audio controls preload="none" src={url} className="mt-4 w-full h-10">
