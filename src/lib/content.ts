@@ -259,6 +259,102 @@ export async function getSermonTranscript(id: string): Promise<string | null> {
   return data.transcript as string;
 }
 
+// ── search ───────────────────────────────────────────────────────────────────
+
+/** Case-insensitive in-memory match, used when the search RPC is unavailable. */
+function matchesQuery(s: Sermon, q: string): boolean {
+  const needle = q.toLowerCase();
+  return [s.title, s.scripture, s.topic, s.summary, s.pastor?.name ?? "", ...s.tags]
+    .join(" ")
+    .toLowerCase()
+    .includes(needle);
+}
+
+/**
+ * Relevance-ranked sermon search via the `search_sermons` RPC (migration 010:
+ * weighted tsvector + pastor/church ilike fallback). The RPC returns ranked
+ * ids; full rows are re-fetched through the normal select so RLS still
+ * applies. Falls back to a simple in-memory filter when the DB is unavailable.
+ */
+export async function searchSermons(q: string, limit = 60): Promise<Sermon[]> {
+  const query = q.trim();
+  if (!query) return [];
+
+  const db = createPublicClient();
+  if (db) {
+    const { data: ranked, error } = await db.rpc("search_sermons", {
+      q: query,
+      max_results: limit,
+    });
+    if (!error && ranked) {
+      const ids = (ranked as { id: string; rank: number }[]).map((r) => r.id);
+      if (ids.length === 0) return [];
+      const { data, error: rowsErr } = await db
+        .from("sermons")
+        .select(SERMON_SELECT)
+        .in("id", ids);
+      if (!rowsErr && data) {
+        const bySermonId = new Map(
+          (data as unknown as SermonRow[]).map((r) => [r.id, mapSermon(r)])
+        );
+        return ids
+          .map((id) => bySermonId.get(id))
+          .filter((s): s is Sermon => Boolean(s));
+      }
+    }
+  }
+
+  const all = await getAllSermons();
+  return all.filter((s) => matchesQuery(s, query)).slice(0, limit);
+}
+
+export type SearchSuggestions = {
+  sermons: { slug: string; title: string; pastorName: string | null }[];
+  pastors: { slug: string; name: string; church: string | null }[];
+};
+
+/**
+ * Navbar typeahead: top-ranked sermons (same ranking as the results page)
+ * plus pastors whose name or church matches. Kept small — it runs per
+ * keystroke (debounced client-side, CDN-cached server-side).
+ */
+export async function getSearchSuggestions(q: string): Promise<SearchSuggestions> {
+  const query = q.trim();
+  if (query.length < 2) return { sermons: [], pastors: [] };
+
+  const [sermons, pastors] = await Promise.all([
+    searchSermons(query, 5),
+    (async () => {
+      const db = createPublicClient();
+      // Strip PostgREST filter syntax (commas, parens) from user input.
+      const safe = query.replace(/[(),]/g, " ").trim();
+      if (db && safe) {
+        const { data, error } = await db
+          .from("pastors")
+          .select("slug, name, church")
+          .or(`name.ilike.%${safe}%,church.ilike.%${safe}%`)
+          .order("followers", { ascending: false })
+          .limit(3);
+        if (!error && data) return data as { slug: string; name: string; church: string | null }[];
+      }
+      return SEED_PASTORS.filter((p) =>
+        `${p.name} ${p.church}`.toLowerCase().includes(query.toLowerCase())
+      )
+        .slice(0, 3)
+        .map((p) => ({ slug: p.slug, name: p.name, church: p.church }));
+    })(),
+  ]);
+
+  return {
+    sermons: sermons.map((s) => ({
+      slug: s.slug,
+      title: s.title,
+      pastorName: s.pastor?.name ?? null,
+    })),
+    pastors,
+  };
+}
+
 export async function getTrending(limit = 6): Promise<Sermon[]> {
   const db = createPublicClient();
   if (db) {
