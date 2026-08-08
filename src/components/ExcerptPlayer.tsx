@@ -43,31 +43,33 @@ export function ExcerptPlayer({
   }
 
   return (
-    <div className="mt-4">
+    <div className="mt-6 grid lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-10 items-center">
       {quote && (
-        <blockquote className="text-sm text-cream leading-relaxed border-l-2 border-gold/60 pl-3 line-clamp-4">
+        <blockquote className="text-[15px] text-cream leading-relaxed border-l-2 border-gold/60 pl-4 line-clamp-6">
           “{quote}”
         </blockquote>
       )}
-      <audio controls preload="none" src={url} className="mt-4 w-full h-10">
-        Your browser does not support audio playback.
-      </audio>
-      <button
-        type="button"
-        onClick={share}
-        className="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot transition-colors"
-      >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path
-            d="M12 15V4m0 0 4 4m-4-4L8 8M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        {copied ? "Link copied!" : "Share this excerpt"}
-      </button>
+      <div className={quote ? "" : "lg:col-span-2 max-w-xl"}>
+        <audio controls preload="none" src={url} className="w-full h-10">
+          Your browser does not support audio playback.
+        </audio>
+        <button
+          type="button"
+          onClick={share}
+          className="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot transition-colors"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M12 15V4m0 0 4 4m-4-4L8 8M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          {copied ? "Link copied!" : "Share this excerpt"}
+        </button>
+      </div>
     </div>
   );
 }
