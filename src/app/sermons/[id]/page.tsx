@@ -10,7 +10,6 @@ import {
 } from "@/lib/content";
 import { getCurrentAccount, isPaidPlan } from "@/lib/account";
 import { isFollowingPastor } from "@/lib/follows";
-import { Thumbnail } from "@/components/Thumbnail";
 import { PastorAvatar } from "@/components/PastorAvatar";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { FollowButton } from "@/components/FollowButton";
@@ -81,8 +80,7 @@ export default async function SermonDetailPage({
         <span>{sermon.title}</span>
       </nav>
 
-      <div className="grid lg:grid-cols-[1.1fr_1fr] gap-8 items-start">
-        <Thumbnail title={sermon.title} hue={sermon.hue} label={sermon.scripture} size="lg" imageUrl={sermon.imageUrl} />
+      <div className="grid lg:grid-cols-[1fr_1.1fr] gap-8 items-center">
         <div>
           <h1 className="font-display text-3xl sm:text-4xl text-cream leading-tight">
             {sermon.title}
@@ -130,11 +128,9 @@ export default async function SermonDetailPage({
             )}
             {sermon.topic && <Meta label="Topic" value={sermon.topic} />}
           </dl>
-
-          <div className="mt-6">
-            <AudioPlayer sermon={sermon} />
-          </div>
         </div>
+
+        <AudioPlayer sermon={sermon} />
       </div>
 
       <section className="mt-12 max-w-3xl">

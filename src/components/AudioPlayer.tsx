@@ -47,8 +47,34 @@ export function AudioPlayer({ sermon }: Props) {
     seek(f * displayDuration);
   };
 
+  // Artwork background — same deterministic gradient as Thumbnail, with the
+  // real cover art layered over it when available and a scrim for legibility.
+  const hue = sermon.hue;
+  const bgA = `hsl(${hue}, 72%, 42%)`;
+  const bgB = `hsl(${(hue + 38) % 360}, 74%, 26%)`;
+  const bgC = `hsl(${(hue - 10 + 360) % 360}, 60%, 14%)`;
+
   return (
-    <div className="rounded-2xl bg-gradient-to-b from-ink-3 to-ink-2 ring-1 ring-line p-5 sm:p-6 shadow-lg shadow-black/10">
+    <div
+      className="relative overflow-hidden rounded-2xl ring-1 ring-line shadow-lg shadow-black/10"
+      style={{
+        background: `radial-gradient(130% 110% at 18% 0%, ${bgA} 0%, ${bgB} 52%, ${bgC} 100%)`,
+      }}
+    >
+      {sermon.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={sermon.imageUrl}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/72 to-black/85"
+      />
+      <div className="relative p-5 sm:p-6">
       <div className="flex items-center gap-3">
         {pastor && (
           <div className="hidden sm:block" aria-hidden>
@@ -62,10 +88,10 @@ export function AudioPlayer({ sermon }: Props) {
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] uppercase tracking-[0.18em] text-cream-faint">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">
             Now playing
           </div>
-          <div className="text-cream font-medium truncate">{sermon.title}</div>
+          <div className="text-white font-medium truncate">{sermon.title}</div>
         </div>
         <div className="hidden sm:flex items-center gap-1.5 text-xs text-leaf">
           <span className="live-dot w-1.5 h-1.5 rounded-full bg-leaf" aria-hidden />
@@ -82,7 +108,7 @@ export function AudioPlayer({ sermon }: Props) {
           onSeek={onWaveformSeek}
           height={64}
         />
-        <div className="mt-2 flex items-center justify-between text-xs text-cream-muted tabular-nums">
+        <div className="mt-2 flex items-center justify-between text-xs text-white/65 tabular-nums">
           <span>{formatDuration(displayProgress)}</span>
           <span>-{formatDuration(Math.max(0, displayDuration - displayProgress))}</span>
         </div>
@@ -114,6 +140,7 @@ export function AudioPlayer({ sermon }: Props) {
           <FwdIcon />
         </IconButton>
       </div>
+      </div>
     </div>
   );
 }
@@ -132,7 +159,7 @@ function IconButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="inline-flex items-center justify-center w-11 h-11 rounded-full text-cream-muted hover:text-cream hover:bg-ink-4 transition-colors"
+      className="inline-flex items-center justify-center w-11 h-11 rounded-full text-white/65 hover:text-white hover:bg-white/10 transition-colors"
     >
       {children}
     </button>
