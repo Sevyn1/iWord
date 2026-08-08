@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import ffmpegPath from "ffmpeg-static";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { extractScriptureFromTranscript } from "./enrich";
+import { extractScriptureFromTranscript, pickExcerptWindow } from "./enrich";
 
 /**
  * Whisper transcription for ingested sermons (see migration 012).
@@ -29,6 +29,9 @@ export type TranscribeRunResult = {
   failed: { slug: string; error: string }[];
   remaining: number;
 };
+
+/** One transcript segment: start/end seconds + text. Stored as jsonb. */
+export type TranscriptSegment = { s: number; e: number; t: string };
 
 function ffmpeg(args: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -62,18 +65,33 @@ async function download(url: string, dest: string): Promise<void> {
   }
 }
 
-async function transcribeFile(path: string): Promise<string> {
+async function transcribeFile(
+  path: string,
+  offsetSec = 0
+): Promise<{ text: string; segments: TranscriptSegment[] }> {
   const form = new FormData();
   form.append("file", await openAsBlob(path, { type: "audio/ogg" }), "audio.ogg");
   form.append("model", MODEL);
-  form.append("response_format", "text");
+  form.append("response_format", "verbose_json");
+  form.append("timestamp_granularities[]", "segment");
   const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
     body: form,
   });
   if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  return (await res.text()).trim();
+  const data = (await res.json()) as {
+    text?: string;
+    segments?: Array<{ start: number; end: number; text: string }>;
+  };
+  return {
+    text: (data.text ?? "").trim(),
+    segments: (data.segments ?? []).map((s) => ({
+      s: Math.round((s.start + offsetSec) * 10) / 10,
+      e: Math.round((s.end + offsetSec) * 10) / 10,
+      t: s.text.trim(),
+    })),
+  };
 }
 
 async function fileExists(path: string): Promise<boolean> {
@@ -104,35 +122,80 @@ export function probeDurationSec(input: string): Promise<number> {
   });
 }
 
-/** Download, downsample, and transcribe one audio URL. */
+/**
+ * Download, downsample, and transcribe one audio URL. The downloaded original
+ * is kept at `rawPath` (inside workDir) so the caller can cut an excerpt from
+ * it; the caller owns workDir cleanup.
+ */
 export async function transcribeAudioUrl(
   audioUrl: string,
   workDir: string
-): Promise<{ text: string; durationSec: number }> {
+): Promise<{ text: string; segments: TranscriptSegment[]; durationSec: number; rawPath: string }> {
   const raw = join(workDir, "raw");
   const ogg = join(workDir, "audio.ogg");
-  try {
-    await download(audioUrl, raw);
-    await ffmpeg(["-y", "-i", raw, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "libopus", "-b:a", "16k", ogg]);
-    const durationSec = await probeDurationSec(ogg);
+  await download(audioUrl, raw);
+  await ffmpeg(["-y", "-i", raw, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "libopus", "-b:a", "16k", ogg]);
+  const durationSec = await probeDurationSec(ogg);
 
-    const { size } = await stat(ogg);
-    if (size <= MAX_UPLOAD_BYTES) return { text: await transcribeFile(ogg), durationSec };
-
-    // >~3 h of audio: split into 1-hour segments and stitch the text.
-    const pattern = join(workDir, "part-%03d.ogg");
-    await ffmpeg(["-y", "-i", ogg, "-f", "segment", "-segment_time", "3600", "-c", "copy", pattern]);
-    const parts: string[] = [];
-    for (let i = 0; ; i++) {
-      const part = join(workDir, `part-${String(i).padStart(3, "0")}.ogg`);
-      if (!(await fileExists(part))) break;
-      parts.push(await transcribeFile(part));
-    }
-    return { text: parts.join("\n").trim(), durationSec };
-  } finally {
-    await rm(raw, { force: true }).catch(() => {});
-    await rm(ogg, { force: true }).catch(() => {});
+  const { size } = await stat(ogg);
+  if (size <= MAX_UPLOAD_BYTES) {
+    const { text, segments } = await transcribeFile(ogg);
+    return { text, segments, durationSec, rawPath: raw };
   }
+
+  // >~3 h of audio: split into 1-hour segments, stitch text, offset timestamps.
+  const pattern = join(workDir, "part-%03d.ogg");
+  await ffmpeg(["-y", "-i", ogg, "-f", "segment", "-segment_time", "3600", "-c", "copy", pattern]);
+  const texts: string[] = [];
+  const segments: TranscriptSegment[] = [];
+  for (let i = 0; ; i++) {
+    const part = join(workDir, `part-${String(i).padStart(3, "0")}.ogg`);
+    if (!(await fileExists(part))) break;
+    const chunk = await transcribeFile(part, i * 3600);
+    texts.push(chunk.text);
+    segments.push(...chunk.segments);
+  }
+  return { text: texts.join("\n").trim(), segments, durationSec, rawPath: raw };
+}
+
+/**
+ * Cut the AI-chosen ~60s window from the original audio, upload it to the
+ * public `excerpts` bucket, and return { url, text } — or null when no window
+ * could be chosen. Fade in/out keeps abrupt cuts pleasant.
+ */
+export async function generateExcerpt(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  sermon: { id: string; slug: string; title: string },
+  rawPath: string,
+  segments: TranscriptSegment[],
+  workDir: string
+): Promise<{ url: string; text: string } | null> {
+  const pick = await pickExcerptWindow(sermon.title, segments);
+  if (!pick) return null;
+
+  const clip = join(workDir, "excerpt.mp3");
+  const len = pick.endSec - pick.startSec;
+  await ffmpeg([
+    "-y",
+    "-ss", String(pick.startSec),
+    "-t", String(len),
+    "-i", rawPath,
+    "-vn", "-ac", "1", "-c:a", "libmp3lame", "-b:a", "64k",
+    "-af", `afade=t=in:d=0.6,afade=t=out:st=${Math.max(0, len - 0.8)}:d=0.8`,
+    clip,
+  ]);
+
+  const key = `${sermon.slug}.mp3`;
+  const { error: upErr } = await admin.storage
+    .from("excerpts")
+    .upload(key, await openAsBlob(clip, { type: "audio/mpeg" }), {
+      contentType: "audio/mpeg",
+      upsert: true,
+    });
+  if (upErr) throw new Error(`excerpt upload: ${upErr.message}`);
+
+  const { data } = admin.storage.from("excerpts").getPublicUrl(key);
+  return { url: data.publicUrl, text: pick.text };
 }
 
 /**
@@ -173,15 +236,41 @@ export async function transcribePendingSermons(options?: {
     if (Date.now() - startedAt > timeBudgetMs) break;
     const workDir = await mkdtemp(join(tmpdir(), "iword-transcribe-"));
     try {
-      const { text, durationSec } = await transcribeAudioUrl(sermon.audio_url as string, workDir);
+      const { text, segments, durationSec, rawPath } = await transcribeAudioUrl(
+        sermon.audio_url as string,
+        workDir
+      );
       if (!text) throw new Error("empty transcript");
-      const update: Record<string, unknown> = { transcript: text, transcript_status: "done" };
+      const update: Record<string, unknown> = {
+        transcript: text,
+        transcript_segments: segments,
+        transcript_status: "done",
+      };
       // Backfill metadata the feed never provided, now that we have the audio
       // in hand and the transcript to read.
       if (!sermon.duration_sec && durationSec > 0) update.duration_sec = durationSec;
       if (!sermon.scripture) {
         const scripture = await extractScriptureFromTranscript(sermon.title as string, text);
         if (scripture) update.scripture = scripture;
+      }
+      // Cut + upload the shareable ~60s excerpt while the audio is in hand.
+      try {
+        const excerpt = await generateExcerpt(
+          admin,
+          { id: sermon.id as string, slug: sermon.slug as string, title: sermon.title as string },
+          rawPath,
+          segments,
+          workDir
+        );
+        if (excerpt) {
+          update.excerpt_url = excerpt.url;
+          update.excerpt_text = excerpt.text;
+          update.excerpt_status = "done";
+        } else {
+          update.excerpt_status = "failed";
+        }
+      } catch {
+        update.excerpt_status = "failed";
       }
       const { error: upErr } = await admin.from("sermons").update(update).eq("id", sermon.id);
       if (upErr) throw new Error(`db update: ${upErr.message}`);

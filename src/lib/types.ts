@@ -104,6 +104,7 @@ export type Sermon = {
   imageUrl?: string;
   /** AI-generated 60s excerpt URL (optional; same file in demo). */
   excerptUrl?: string;
+  excerptText?: string;
   /**
    * Denormalized pastor snapshot for client rendering. Populated when sermons
    * are loaded via a join; may be undefined for bare/legacy records.

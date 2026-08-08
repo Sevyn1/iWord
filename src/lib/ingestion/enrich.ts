@@ -180,6 +180,53 @@ export async function extractScriptureFromTranscript(
 }
 
 /**
+ * Pick the most compelling ~60-second window of a sermon from its transcript
+ * segments. Returns start/end seconds (snapped to segment boundaries) plus the
+ * text of the chosen passage, or null when AI is unavailable or the answer
+ * doesn't validate.
+ */
+export async function pickExcerptWindow(
+  title: string,
+  segments: Array<{ s: number; e: number; t: string }>
+): Promise<{ startSec: number; endSec: number; text: string } | null> {
+  if (!isOpenAIConfigured() || segments.length === 0) return null;
+
+  const numbered = segments.map((seg, i) => `[${i}] ${seg.t}`).join("\n");
+  const raw = await callOpenAI([
+    {
+      role: "system",
+      content:
+        "You select shareable highlights from sermons. Given numbered transcript segments, choose a " +
+        "contiguous run that forms the single most powerful, self-contained moment — a complete " +
+        "thought that would move someone who has never heard the sermon. Prefer vivid gospel-centered " +
+        "passages over housekeeping, intros, or announcements. " +
+        'Respond ONLY with JSON: {"start": number, "end": number} — the first and last segment ' +
+        "indices (inclusive) of the chosen run. Aim for 45-75 seconds of speech.",
+    },
+    { role: "user", content: `Sermon: ${title}\n\nSegments:\n${numbered.slice(0, 60_000)}` },
+  ]);
+
+  const parsed = safeParse<{ start?: number; end?: number }>(raw);
+  if (!parsed) return null;
+  const start = Math.trunc(parsed.start ?? -1);
+  let end = Math.trunc(parsed.end ?? -1);
+  if (start < 0 || end < start || start >= segments.length) return null;
+  end = Math.min(end, segments.length - 1);
+  // Clamp runaway picks to ~90s of audio.
+  while (end > start && segments[end].e - segments[start].s > 90) end -= 1;
+
+  return {
+    startSec: segments[start].s,
+    endSec: segments[end].e,
+    text: segments
+      .slice(start, end + 1)
+      .map((seg) => seg.t)
+      .join(" ")
+      .trim(),
+  };
+}
+
+/**
  * Resolve the real-world church behind a sermon feed.
  *
  * Many sermon podcasts are ministries or parachurch networks rather than a

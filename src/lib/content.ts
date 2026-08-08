@@ -78,6 +78,7 @@ type SermonRow = {
   hue: number;
   views_this_week: number;
   excerpt_url: string | null;
+  excerpt_text: string | null;
   source: string | null;
   source_url: string | null;
   content_type: string | null;
@@ -87,7 +88,7 @@ type SermonRow = {
 };
 
 const SERMON_SELECT =
-  "id, slug, title, pastor_id, scripture, topic, tags, published_at, duration_sec, audio_url, summary, hue, views_this_week, excerpt_url, source, source_url, content_type, image_url, pastor:pastors(slug, name, church, initials, hue, image_url), church:churches(artwork_url, logo_url)";
+  "id, slug, title, pastor_id, scripture, topic, tags, published_at, duration_sec, audio_url, summary, hue, views_this_week, excerpt_url, excerpt_text, source, source_url, content_type, image_url, pastor:pastors(slug, name, church, initials, hue, image_url), church:churches(artwork_url, logo_url)";
 
 // ── mappers ─────────────────────────────────────────────────────────────────
 
@@ -157,6 +158,7 @@ function mapSermon(r: SermonRow): Sermon {
     imageUrl:
       r.image_url ?? r.church?.artwork_url ?? r.church?.logo_url ?? undefined,
     excerptUrl: r.excerpt_url ?? undefined,
+    excerptText: r.excerpt_text ?? undefined,
     source: (r.source as ContentSource) ?? "manual",
     contentType: r.content_type === "podcast" ? "podcast" : "sermon",
     sourceUrl: r.source_url ?? undefined,

@@ -138,18 +138,27 @@ async function download(url, dest) {
   }
 }
 
-async function transcribeFile(path) {
+async function transcribeFile(path, offsetSec = 0) {
   const form = new FormData();
   form.append("file", await openAsBlob(path, { type: "audio/ogg" }), "audio.ogg");
   form.append("model", MODEL);
-  form.append("response_format", "text");
+  form.append("response_format", "verbose_json");
+  form.append("timestamp_granularities[]", "segment");
   const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
     body: form,
   });
   if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  return (await res.text()).trim();
+  const data = await res.json();
+  return {
+    text: (data.text ?? "").trim(),
+    segments: (data.segments ?? []).map((s) => ({
+      s: Math.round((s.start + offsetSec) * 10) / 10,
+      e: Math.round((s.end + offsetSec) * 10) / 10,
+      t: s.text.trim(),
+    })),
+  };
 }
 
 async function transcribeSermon(sermon, workDir) {
@@ -163,13 +172,15 @@ async function transcribeSermon(sermon, workDir) {
 
     const { size } = statSync(ogg);
     let text;
+    let segments;
     if (size <= MAX_UPLOAD_BYTES) {
-      text = await transcribeFile(ogg);
+      ({ text, segments } = await transcribeFile(ogg));
     } else {
-      // >~3 h of audio: split into 1-hour segments and stitch the text.
+      // >~3 h of audio: split into 1-hour chunks, stitch text, offset timestamps.
       const pattern = join(workDir, `${sermon.id}-part-%03d.ogg`);
       await ffmpeg(["-y", "-i", ogg, "-f", "segment", "-segment_time", "3600", "-c", "copy", pattern]);
-      const parts = [];
+      const texts = [];
+      segments = [];
       for (let i = 0; ; i++) {
         const part = join(workDir, `${sermon.id}-part-${String(i).padStart(3, "0")}.ogg`);
         try {
@@ -177,13 +188,24 @@ async function transcribeSermon(sermon, workDir) {
         } catch {
           break;
         }
-        parts.push(await transcribeFile(part));
+        const chunk = await transcribeFile(part, i * 3600);
+        texts.push(chunk.text);
+        segments.push(...chunk.segments);
       }
-      text = parts.join("\n").trim();
+      text = texts.join("\n").trim();
     }
 
     if (!text) throw new Error("empty transcript");
-    return { text, durationSec };
+
+    // Cut + upload the shareable ~60s excerpt while the audio is in hand.
+    let excerpt = null;
+    try {
+      excerpt = await generateExcerpt(sermon, raw, segments, workDir);
+    } catch (err) {
+      console.error(`  excerpt failed for ${sermon.slug}: ${err.message}`);
+    }
+
+    return { text, segments, durationSec, excerpt };
   } finally {
     for (const f of [raw, ogg]) {
       try {
@@ -191,6 +213,74 @@ async function transcribeSermon(sermon, workDir) {
       } catch {}
     }
   }
+}
+
+// Ask AI for the most compelling ~60s window, cut it with fades, upload to the
+// public excerpts bucket. Twin of generateExcerpt in src/lib/ingestion/transcribe.ts.
+async function generateExcerpt(sermon, rawPath, segments, workDir) {
+  if (!segments || segments.length === 0) return null;
+  const numbered = segments.map((seg, i) => `[${i}] ${seg.t}`).join("\n");
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      temperature: 0.2,
+      max_tokens: 60,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content:
+            "You select shareable highlights from sermons. Given numbered transcript segments, choose a " +
+            "contiguous run that forms the single most powerful, self-contained moment — a complete " +
+            "thought that would move someone who has never heard the sermon. Prefer vivid gospel-centered " +
+            "passages over housekeeping, intros, or announcements. " +
+            'Respond ONLY with JSON: {"start": number, "end": number} — the first and last segment ' +
+            "indices (inclusive) of the chosen run. Aim for 45-75 seconds of speech.",
+        },
+        { role: "user", content: `Sermon: ${sermon.title}\n\nSegments:\n${numbered.slice(0, 60000)}` },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`excerpt pick HTTP ${res.status}`);
+  const data = await res.json();
+  const parsed = JSON.parse(data.choices?.[0]?.message?.content ?? "{}");
+  const start = Math.trunc(parsed.start ?? -1);
+  let end = Math.trunc(parsed.end ?? -1);
+  if (start < 0 || end < start || start >= segments.length) return null;
+  end = Math.min(end, segments.length - 1);
+  while (end > start && segments[end].e - segments[start].s > 90) end -= 1;
+
+  const startSec = segments[start].s;
+  const len = segments[end].e - startSec;
+  const clip = join(workDir, `${sermon.id}-excerpt.mp3`);
+  await ffmpeg([
+    "-y",
+    "-ss", String(startSec),
+    "-t", String(len),
+    "-i", rawPath,
+    "-vn", "-ac", "1", "-c:a", "libmp3lame", "-b:a", "64k",
+    "-af", `afade=t=in:d=0.6,afade=t=out:st=${Math.max(0, len - 0.8)}:d=0.8`,
+    clip,
+  ]);
+
+  const key = `${sermon.slug}.mp3`;
+  const { error: upErr } = await admin.storage
+    .from("excerpts")
+    .upload(key, await openAsBlob(clip, { type: "audio/mpeg" }), {
+      contentType: "audio/mpeg",
+      upsert: true,
+    });
+  rmSync(clip, { force: true });
+  if (upErr) throw new Error(`excerpt upload: ${upErr.message}`);
+
+  const { data: pub } = admin.storage.from("excerpts").getPublicUrl(key);
+  const text = segments.slice(start, end + 1).map((seg) => seg.t).join(" ").trim();
+  return { url: pub.publicUrl, text };
 }
 
 async function runBatch() {
@@ -225,18 +315,27 @@ async function runBatch() {
     for (let sermon = queue.shift(); sermon; sermon = queue.shift()) {
       const label = `${sermon.slug} (${Math.round((sermon.duration_sec || 0) / 60)}m)`;
       try {
-        const { text, durationSec } = await transcribeSermon(sermon, workDir);
-        const update = { transcript: text, transcript_status: "done" };
+        const { text, segments, durationSec, excerpt } = await transcribeSermon(sermon, workDir);
+        const update = { transcript: text, transcript_segments: segments, transcript_status: "done" };
         // Backfill metadata the feed never provided.
         if (!sermon.duration_sec && durationSec > 0) update.duration_sec = durationSec;
         if (!sermon.scripture) {
           const scripture = await extractScripture(sermon.title, text);
           if (scripture) update.scripture = scripture;
         }
+        if (excerpt) {
+          update.excerpt_url = excerpt.url;
+          update.excerpt_text = excerpt.text;
+          update.excerpt_status = "done";
+        } else {
+          update.excerpt_status = "failed";
+        }
         const { error: upErr } = await admin.from("sermons").update(update).eq("id", sermon.id);
         if (upErr) throw new Error(`db update: ${upErr.message}`);
         done += 1;
-        console.log(`✓ ${label} — ${text.split(/\s+/).length} words${update.scripture ? ` · ${update.scripture}` : ""}`);
+        console.log(
+          `✓ ${label} — ${text.split(/\s+/).length} words${update.scripture ? ` · ${update.scripture}` : ""}${excerpt ? " · excerpt ✓" : ""}`
+        );
       } catch (err) {
         // Out of OpenAI credits: leave rows as 'pending' and stop, so a plain
         // re-run resumes cleanly after topping up (no --retry-failed needed).
