@@ -4,6 +4,7 @@ import {
   getAllSermons,
   getRelated,
   getSermonBySlug,
+  getSermonTranscript,
   getPastorById,
   getChurchForPastor,
 } from "@/lib/content";
@@ -60,6 +61,7 @@ export default async function SermonDetailPage({
   const account = await getCurrentAccount();
   const canUseExcerpt = isPaidPlan(account?.plan);
   const following = pastor ? await isFollowingPastor(pastor.id) : false;
+  const transcript = await getSermonTranscript(sermon.id);
 
   return (
     <article className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
@@ -201,6 +203,38 @@ export default async function SermonDetailPage({
         </aside>
       </section>
 
+      {transcript && (
+        <section className="mt-14">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-5">
+            <h2 className="font-display text-2xl text-cream">Transcript</h2>
+            <span className="text-xs text-cream-faint">
+              Auto-generated — may contain minor errors
+            </span>
+          </div>
+          <details className="group rounded-2xl bg-ink-2 ring-1 ring-line" open>
+            <div className="px-5 py-5 space-y-4 text-[15px] text-cream-muted leading-relaxed max-h-[32rem] overflow-y-auto">
+              {toParagraphs(transcript).map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+            <summary className="flex items-center justify-center gap-2 cursor-pointer select-none px-5 py-3 border-t border-line text-sm text-gold hover:text-gold-hot list-none [&::-webkit-details-marker]:hidden">
+              <span className="group-open:hidden">Show transcript</span>
+              <span className="hidden group-open:inline">Hide transcript</span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+                className="transition-transform group-open:rotate-180"
+              >
+                <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </summary>
+          </details>
+        </section>
+      )}
+
       {related.length > 0 && (
         <section className="mt-14">
           <h2 className="font-display text-2xl text-cream mb-5">More like this</h2>
@@ -222,4 +256,31 @@ function Meta({ label, value }: { label: string; value: string }) {
       <dd className="text-cream truncate">{value}</dd>
     </div>
   );
+}
+
+/**
+ * Whisper returns one wall of text; group sentences into short paragraphs so
+ * the transcript is readable. Respects any double-newlines already present.
+ * Each paragraph is capitalized — podcasts often open mid-sentence (cold-open
+ * teasers), which otherwise reads like missing text.
+ */
+function toParagraphs(text: string, sentencesPer = 5): string[] {
+  const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+  const blocks = text.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
+  if (blocks.length > 1) return blocks.map(capitalize);
+  const raw = text.match(/[^.!?]+[.!?]+[\s]*/g) ?? [text];
+  // Re-join splits caused by initials ("R." / "C. Sproul" → "R.C. Sproul").
+  const sentences: string[] = [];
+  for (const part of raw) {
+    if (sentences.length > 0 && /(?:^|[\s.])[A-Z]\.\s*$/.test(sentences[sentences.length - 1])) {
+      sentences[sentences.length - 1] += part;
+    } else {
+      sentences.push(part);
+    }
+  }
+  const paragraphs: string[] = [];
+  for (let i = 0; i < sentences.length; i += sentencesPer) {
+    paragraphs.push(sentences.slice(i, i + sentencesPer).join("").trim());
+  }
+  return paragraphs.filter(Boolean).map(capitalize);
 }

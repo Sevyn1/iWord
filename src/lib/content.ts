@@ -241,6 +241,24 @@ export async function getSermonsByPastor(pastorId: string): Promise<Sermon[]> {
   return SEED_SERMONS_WITH_PASTOR.filter((s) => s.pastorId === pastorId);
 }
 
+/**
+ * Fetch a sermon's transcript on its own so SERMON_SELECT list queries never
+ * carry multi-thousand-word text columns. Null until Whisper has run
+ * (transcript_status = done — see migration 012).
+ */
+export async function getSermonTranscript(id: string): Promise<string | null> {
+  const db = createPublicClient();
+  if (!db) return null;
+  const { data, error } = await db
+    .from("sermons")
+    .select("transcript")
+    .eq("id", id)
+    .eq("transcript_status", "done")
+    .maybeSingle();
+  if (error || !data?.transcript) return null;
+  return data.transcript as string;
+}
+
 export async function getTrending(limit = 6): Promise<Sermon[]> {
   const db = createPublicClient();
   if (db) {

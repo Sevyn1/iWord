@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  // ffmpeg-static ships a native binary; keep it external so Next's bundler
+  // doesn't inline it and Vercel traces the binary into the cron function.
+  serverExternalPackages: ["ffmpeg-static"],
+};
 
 export default withSentryConfig(nextConfig, {
   // Source-map upload / release management. Read from env so the build works
