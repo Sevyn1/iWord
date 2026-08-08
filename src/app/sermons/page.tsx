@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getAllSermons, getAllPastors } from "@/lib/content";
+import { getAllSermons, getAllPastors, searchSermons } from "@/lib/content";
 import { SermonCard } from "@/components/SermonCard";
 import { BrowseFilters } from "./BrowseFilters";
 
@@ -22,38 +22,27 @@ export default async function SermonsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const sort = sp.sort ?? "recent";
+  const q = (sp.q ?? "").trim();
+  // Search results default to relevance order; explicit sorts still win.
+  const sort = sp.sort ?? (q ? "relevance" : "recent");
   const pastorId = sp.pastor;
   const topic = sp.topic;
-  const q = (sp.q ?? "").trim().toLowerCase();
 
   const [allSermons, pastors] = await Promise.all([
     getAllSermons(),
     getAllPastors(),
   ]);
 
-  let items = [...allSermons];
+  let items = q ? await searchSermons(q) : [...allSermons];
   if (pastorId) items = items.filter((s) => s.pastorId === pastorId);
   if (topic) items = items.filter((s) => s.topic === topic);
-  if (q) {
-    items = items.filter((s) => {
-      return (
-        s.title.toLowerCase().includes(q) ||
-        s.scripture.toLowerCase().includes(q) ||
-        s.topic.toLowerCase().includes(q) ||
-        s.tags.some((t) => t.toLowerCase().includes(q)) ||
-        s.pastor?.name.toLowerCase().includes(q) ||
-        s.pastor?.church.toLowerCase().includes(q)
-      );
-    });
-  }
   if (sort === "trending") {
     items.sort((a, b) => b.viewsThisWeek - a.viewsThisWeek);
   } else if (sort === "longest") {
     items.sort((a, b) => b.durationSec - a.durationSec);
   } else if (sort === "shortest") {
     items.sort((a, b) => a.durationSec - b.durationSec);
-  } else {
+  } else if (sort !== "relevance") {
     items.sort(
       (a, b) =>
         new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
@@ -92,9 +81,10 @@ export default async function SermonsPage({
 
 function sortLabel(s: string) {
   switch (s) {
-    case "trending": return "trending this week";
-    case "longest":  return "longest first";
-    case "shortest": return "shortest first";
-    default:         return "most recent";
+    case "relevance": return "relevance";
+    case "trending":  return "trending this week";
+    case "longest":   return "longest first";
+    case "shortest":  return "shortest first";
+    default:          return "most recent";
   }
 }
