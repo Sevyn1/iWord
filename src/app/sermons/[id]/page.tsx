@@ -123,12 +123,11 @@ export default async function SermonDetailPage({
           )}
 
           <dl className="mt-5 grid grid-cols-3 gap-3 text-sm">
-            <Meta label="Scripture" value={sermon.scripture} />
-            <Meta
-              label="Length"
-              value={sermon.durationSec > 0 ? formatDurationLong(sermon.durationSec) : "—"}
-            />
-            <Meta label="Topic" value={sermon.topic} />
+            {sermon.scripture && <Meta label="Scripture" value={sermon.scripture} />}
+            {sermon.durationSec > 0 && (
+              <Meta label="Length" value={formatDurationLong(sermon.durationSec)} />
+            )}
+            {sermon.topic && <Meta label="Topic" value={sermon.topic} />}
           </dl>
 
           <div className="mt-6">

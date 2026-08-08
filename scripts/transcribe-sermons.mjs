@@ -70,6 +70,58 @@ function ffmpeg(ffmpegArgs) {
   });
 }
 
+// Duration via `ffmpeg -i` (no ffprobe in ffmpeg-static): exits non-zero but
+// prints "Duration: HH:MM:SS.cc" to stderr. Works on local files and URLs.
+function probeDurationSec(input) {
+  return new Promise((resolve) => {
+    const proc = spawn(ffmpegPath, ["-hide_banner", "-i", input]);
+    let stderr = "";
+    proc.stderr.on("data", (d) => (stderr += d));
+    proc.on("error", () => resolve(0));
+    proc.on("close", () => {
+      const m = stderr.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+      resolve(m ? Math.round(Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3])) : 0);
+    });
+  });
+}
+
+// Ask AI for the primary Bible passage from the transcript opening. Returns
+// "" when none is clearly preached, null on failure. Twin of
+// extractScriptureFromTranscript in src/lib/ingestion/enrich.ts.
+async function extractScripture(title, transcript) {
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        temperature: 0.2,
+        max_tokens: 60,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a librarian cataloging Christian sermons. Given a sermon title and the opening " +
+              "of its transcript, identify the primary Bible passage being preached. " +
+              'Respond ONLY with JSON: {"scripture": string} — a single reference like "Romans 8:28-30" ' +
+              'or "" if no specific passage is clearly the sermon\'s text. Never guess.',
+          },
+          { role: "user", content: `Title: ${title}\nTranscript opening:\n${transcript.slice(0, 6000)}` },
+        ],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (JSON.parse(data.choices?.[0]?.message?.content ?? "{}").scripture || "").trim();
+  } catch {
+    return null;
+  }
+}
+
 async function download(url, dest) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
@@ -107,6 +159,7 @@ async function transcribeSermon(sermon, workDir) {
     await download(sermon.audio_url, raw);
     // 16 kHz mono Opus ≈ 7 MB/hour — one Whisper call even for long messages.
     await ffmpeg(["-y", "-i", raw, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "libopus", "-b:a", "16k", ogg]);
+    const durationSec = await probeDurationSec(ogg);
 
     const { size } = statSync(ogg);
     let text;
@@ -130,7 +183,7 @@ async function transcribeSermon(sermon, workDir) {
     }
 
     if (!text) throw new Error("empty transcript");
-    return text;
+    return { text, durationSec };
   } finally {
     for (const f of [raw, ogg]) {
       try {
@@ -144,7 +197,7 @@ async function runBatch() {
   const statuses = RETRY_FAILED ? ["pending", "failed"] : ["pending"];
   let query = admin
     .from("sermons")
-    .select("id, slug, title, audio_url, duration_sec")
+    .select("id, slug, title, audio_url, scripture, duration_sec")
     .in("transcript_status", statuses)
     .not("audio_url", "is", "null")
     .order("published_at", { ascending: false });
@@ -172,14 +225,18 @@ async function runBatch() {
     for (let sermon = queue.shift(); sermon; sermon = queue.shift()) {
       const label = `${sermon.slug} (${Math.round((sermon.duration_sec || 0) / 60)}m)`;
       try {
-        const text = await transcribeSermon(sermon, workDir);
-        const { error: upErr } = await admin
-          .from("sermons")
-          .update({ transcript: text, transcript_status: "done" })
-          .eq("id", sermon.id);
+        const { text, durationSec } = await transcribeSermon(sermon, workDir);
+        const update = { transcript: text, transcript_status: "done" };
+        // Backfill metadata the feed never provided.
+        if (!sermon.duration_sec && durationSec > 0) update.duration_sec = durationSec;
+        if (!sermon.scripture) {
+          const scripture = await extractScripture(sermon.title, text);
+          if (scripture) update.scripture = scripture;
+        }
+        const { error: upErr } = await admin.from("sermons").update(update).eq("id", sermon.id);
         if (upErr) throw new Error(`db update: ${upErr.message}`);
         done += 1;
-        console.log(`✓ ${label} — ${text.split(/\s+/).length} words`);
+        console.log(`✓ ${label} — ${text.split(/\s+/).length} words${update.scripture ? ` · ${update.scripture}` : ""}`);
       } catch (err) {
         // Out of OpenAI credits: leave rows as 'pending' and stop, so a plain
         // re-run resumes cleanly after topping up (no --retry-failed needed).
@@ -205,7 +262,47 @@ async function runBatch() {
   return { outOfCredits };
 }
 
+// Fill scripture (AI, from transcript) and duration (probed from the audio
+// header) for sermons transcribed before the pipeline learned to do this.
+async function enrichExisting() {
+  if (DRY_RUN) return;
+
+  const { data: noScripture } = await admin
+    .from("sermons")
+    .select("id, slug, title, transcript")
+    .eq("transcript_status", "done")
+    .eq("scripture", "")
+    .not("transcript", "is", "null");
+  for (const s of noScripture ?? []) {
+    const scripture = await extractScripture(s.title, s.transcript);
+    if (scripture === null) {
+      console.error(`✗ scripture ${s.slug} — AI call failed, skipping catch-up pass`);
+      break;
+    }
+    if (scripture) {
+      await admin.from("sermons").update({ scripture }).eq("id", s.id);
+      console.log(`✓ scripture ${s.slug} — ${scripture}`);
+    }
+  }
+
+  const { data: noDuration } = await admin
+    .from("sermons")
+    .select("id, slug, audio_url")
+    .eq("duration_sec", 0)
+    .eq("transcript_status", "done")
+    .not("audio_url", "is", "null");
+  for (const s of noDuration ?? []) {
+    const durationSec = await probeDurationSec(s.audio_url);
+    if (durationSec > 0) {
+      await admin.from("sermons").update({ duration_sec: durationSec }).eq("id", s.id);
+      console.log(`✓ duration ${s.slug} — ${Math.round(durationSec / 60)}m`);
+    }
+  }
+}
+
 async function main() {
+  // Catch-up: sermons transcribed before the pipeline filled scripture/duration.
+  await enrichExisting();
   for (;;) {
     const { outOfCredits } = await runBatch();
     if (!outOfCredits || !WATCH) return;

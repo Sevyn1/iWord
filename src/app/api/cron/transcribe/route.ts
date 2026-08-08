@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { transcribePendingSermons } from "@/lib/ingestion/transcribe";
+import { transcribePendingSermons, enrichTranscribedSermons } from "@/lib/ingestion/transcribe";
 
 /**
  * Scheduled transcription endpoint.
@@ -32,9 +32,15 @@ export async function GET(request: Request) {
   const requested = Number(new URL(request.url).searchParams.get("limit"));
   const limit = Number.isInteger(requested) && requested > 0 ? Math.min(requested, 8) : 8;
 
-  const result = await transcribePendingSermons({ limit, timeBudgetMs: 240_000 });
+  const startedAt = Date.now();
+  const result = await transcribePendingSermons({ limit, timeBudgetMs: 200_000 });
   if (!result.ok) {
     return NextResponse.json(result, { status: 500 });
   }
-  return NextResponse.json(result);
+  // Spend leftover time closing metadata gaps (scripture/duration) on sermons
+  // transcribed before the pipeline learned to fill them.
+  const enriched = await enrichTranscribedSermons({
+    timeBudgetMs: Math.max(0, 270_000 - (Date.now() - startedAt)),
+  });
+  return NextResponse.json({ ...result, enriched });
 }

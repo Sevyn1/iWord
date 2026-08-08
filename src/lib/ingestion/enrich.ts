@@ -148,6 +148,38 @@ export async function enrichEpisode(
 }
 
 /**
+ * Identify the primary Bible passage from a sermon's transcript. Used when the
+ * feed metadata never named one (enrichEpisode saw only title + description).
+ * Preachers announce their text early, so the opening of the transcript is
+ * enough. Returns "" when no passage is clearly preached, null on AI failure.
+ */
+export async function extractScriptureFromTranscript(
+  title: string,
+  transcript: string
+): Promise<string | null> {
+  if (!isOpenAIConfigured()) return null;
+
+  const raw = await callOpenAI([
+    {
+      role: "system",
+      content:
+        "You are a librarian cataloging Christian sermons. Given a sermon title and the opening " +
+        "of its transcript, identify the primary Bible passage being preached. " +
+        'Respond ONLY with JSON: {"scripture": string} — a single reference like "Romans 8:28-30" ' +
+        'or "" if no specific passage is clearly the sermon\'s text. Never guess.',
+    },
+    {
+      role: "user",
+      content: `Title: ${title}\nTranscript opening:\n${transcript.slice(0, 6000)}`,
+    },
+  ]);
+
+  const parsed = safeParse<{ scripture?: string }>(raw);
+  if (!parsed) return null;
+  return (parsed.scripture || "").trim();
+}
+
+/**
  * Resolve the real-world church behind a sermon feed.
  *
  * Many sermon podcasts are ministries or parachurch networks rather than a

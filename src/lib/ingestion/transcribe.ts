@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import ffmpegPath from "ffmpeg-static";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { extractScriptureFromTranscript } from "./enrich";
 
 /**
  * Whisper transcription for ingested sermons (see migration 012).
@@ -84,16 +85,39 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
+/**
+ * Read a media file's duration via `ffmpeg -i` (no ffprobe in ffmpeg-static).
+ * ffmpeg exits non-zero without an output file, but still prints
+ * "Duration: HH:MM:SS.cc" to stderr. Returns 0 when unknown.
+ */
+export function probeDurationSec(input: string): Promise<number> {
+  return new Promise((resolve) => {
+    if (!ffmpegPath) return resolve(0);
+    const proc = spawn(ffmpegPath, ["-hide_banner", "-i", input]);
+    let stderr = "";
+    proc.stderr.on("data", (d) => (stderr += d));
+    proc.on("error", () => resolve(0));
+    proc.on("close", () => {
+      const m = stderr.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+      resolve(m ? Math.round(Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3])) : 0);
+    });
+  });
+}
+
 /** Download, downsample, and transcribe one audio URL. */
-export async function transcribeAudioUrl(audioUrl: string, workDir: string): Promise<string> {
+export async function transcribeAudioUrl(
+  audioUrl: string,
+  workDir: string
+): Promise<{ text: string; durationSec: number }> {
   const raw = join(workDir, "raw");
   const ogg = join(workDir, "audio.ogg");
   try {
     await download(audioUrl, raw);
     await ffmpeg(["-y", "-i", raw, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "libopus", "-b:a", "16k", ogg]);
+    const durationSec = await probeDurationSec(ogg);
 
     const { size } = await stat(ogg);
-    if (size <= MAX_UPLOAD_BYTES) return await transcribeFile(ogg);
+    if (size <= MAX_UPLOAD_BYTES) return { text: await transcribeFile(ogg), durationSec };
 
     // >~3 h of audio: split into 1-hour segments and stitch the text.
     const pattern = join(workDir, "part-%03d.ogg");
@@ -104,7 +128,7 @@ export async function transcribeAudioUrl(audioUrl: string, workDir: string): Pro
       if (!(await fileExists(part))) break;
       parts.push(await transcribeFile(part));
     }
-    return parts.join("\n").trim();
+    return { text: parts.join("\n").trim(), durationSec };
   } finally {
     await rm(raw, { force: true }).catch(() => {});
     await rm(ogg, { force: true }).catch(() => {});
@@ -134,7 +158,7 @@ export async function transcribePendingSermons(options?: {
 
   const { data, error, count } = await admin
     .from("sermons")
-    .select("id, slug, audio_url", { count: "exact" })
+    .select("id, slug, title, audio_url, scripture, duration_sec", { count: "exact" })
     .eq("transcript_status", "pending")
     .not("audio_url", "is", "null")
     .order("published_at", { ascending: false })
@@ -149,12 +173,17 @@ export async function transcribePendingSermons(options?: {
     if (Date.now() - startedAt > timeBudgetMs) break;
     const workDir = await mkdtemp(join(tmpdir(), "iword-transcribe-"));
     try {
-      const text = await transcribeAudioUrl(sermon.audio_url as string, workDir);
+      const { text, durationSec } = await transcribeAudioUrl(sermon.audio_url as string, workDir);
       if (!text) throw new Error("empty transcript");
-      const { error: upErr } = await admin
-        .from("sermons")
-        .update({ transcript: text, transcript_status: "done" })
-        .eq("id", sermon.id);
+      const update: Record<string, unknown> = { transcript: text, transcript_status: "done" };
+      // Backfill metadata the feed never provided, now that we have the audio
+      // in hand and the transcript to read.
+      if (!sermon.duration_sec && durationSec > 0) update.duration_sec = durationSec;
+      if (!sermon.scripture) {
+        const scripture = await extractScriptureFromTranscript(sermon.title as string, text);
+        if (scripture) update.scripture = scripture;
+      }
+      const { error: upErr } = await admin.from("sermons").update(update).eq("id", sermon.id);
       if (upErr) throw new Error(`db update: ${upErr.message}`);
       result.done.push(sermon.slug as string);
     } catch (err) {
@@ -174,4 +203,59 @@ export async function transcribePendingSermons(options?: {
 
   result.remaining = Math.max(0, result.remaining - result.done.length - result.failed.length);
   return { ok: true, ...result };
+}
+
+/**
+ * Backfill metadata for sermons transcribed before the pipeline learned to
+ * fill it: scripture read from the transcript by AI, duration probed from the
+ * remote audio header. Runs in the transcribe cron's leftover time so gaps
+ * close automatically in the background.
+ */
+export async function enrichTranscribedSermons(options?: {
+  limit?: number;
+  timeBudgetMs?: number;
+}): Promise<{ scriptureFilled: number; durationFilled: number }> {
+  const limit = options?.limit ?? 40;
+  const timeBudgetMs = options?.timeBudgetMs ?? 45_000;
+  const startedAt = Date.now();
+  const out = { scriptureFilled: 0, durationFilled: 0 };
+
+  const admin = createAdminClient();
+  if (!admin) return out;
+
+  const { data: noScripture } = await admin
+    .from("sermons")
+    .select("id, title, transcript")
+    .eq("transcript_status", "done")
+    .eq("scripture", "")
+    .not("transcript", "is", "null")
+    .order("published_at", { ascending: false })
+    .limit(limit);
+  for (const s of noScripture ?? []) {
+    if (Date.now() - startedAt > timeBudgetMs) return out;
+    const scripture = await extractScriptureFromTranscript(s.title as string, s.transcript as string);
+    if (scripture === null) return out; // AI unavailable/failing — try next run
+    if (scripture) {
+      await admin.from("sermons").update({ scripture }).eq("id", s.id);
+      out.scriptureFilled += 1;
+    }
+  }
+
+  const { data: noDuration } = await admin
+    .from("sermons")
+    .select("id, audio_url")
+    .eq("duration_sec", 0)
+    .eq("transcript_status", "done")
+    .not("audio_url", "is", "null")
+    .limit(limit);
+  for (const s of noDuration ?? []) {
+    if (Date.now() - startedAt > timeBudgetMs) return out;
+    const durationSec = await probeDurationSec(s.audio_url as string);
+    if (durationSec > 0) {
+      await admin.from("sermons").update({ duration_sec: durationSec }).eq("id", s.id);
+      out.durationFilled += 1;
+    }
+  }
+
+  return out;
 }
