@@ -21,10 +21,10 @@ const PLANS: Plan[] = ["free", "devoted", "patron"];
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; notice?: string }>;
 }) {
   const currentAdminId = await requireAdmin();
-  const { q } = await searchParams;
+  const { q, notice } = await searchParams;
   const search = (q ?? "").trim();
 
   const admin = createAdminClient();
@@ -86,6 +86,15 @@ export default async function AdminPage({
           ← Back to site
         </Link>
       </div>
+
+      {notice && (
+        <div
+          role="status"
+          className="mt-6 rounded-xl bg-gold/10 ring-1 ring-gold/40 px-4 py-3 text-sm text-gold"
+        >
+          {notice}
+        </div>
+      )}
 
       <div className="mt-6">
         <Link
@@ -255,8 +264,11 @@ export default async function AdminPage({
         </div>
 
         <p className="px-5 py-3 text-xs text-cream-faint border-t border-line">
-          Showing up to 100 most recent members. Plan changes here are manual
-          overrides and do not affect Stripe billing.
+          Showing up to 100 most recent members. For members with active Stripe
+          billing, downgrades are scheduled in Stripe for the end of the paid
+          period (to free = cancel at period end) and upgrades must be made by
+          the member. For everyone else, plan changes apply immediately as
+          comps/overrides.
         </p>
       </div>
     </div>
