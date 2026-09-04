@@ -52,15 +52,37 @@ export default async function AdminPage({
 
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [total, freeCount, devotedCount, patronCount, pastDueCount, newCount] =
-    await Promise.all([
-      count((q) => q),
-      count((q) => q.eq("plan", "free")),
-      count((q) => q.eq("plan", "devoted")),
-      count((q) => q.eq("plan", "patron")),
-      count((q) => q.eq("stripe_status", "past_due")),
-      count((q) => q.gte("created_at", weekAgo)),
-    ]);
+  const sermonCount = async (status: string, column = "transcript_status") => {
+    const { count: c } = await admin!
+      .from("sermons")
+      .select("*", { count: "exact", head: true })
+      .eq(column, status);
+    return c ?? 0;
+  };
+
+  const [
+    total,
+    freeCount,
+    devotedCount,
+    patronCount,
+    pastDueCount,
+    newCount,
+    transcriptDone,
+    transcriptPending,
+    transcriptFailed,
+    excerptDone,
+  ] = await Promise.all([
+    count((q) => q),
+    count((q) => q.eq("plan", "free")),
+    count((q) => q.eq("plan", "devoted")),
+    count((q) => q.eq("plan", "patron")),
+    count((q) => q.eq("stripe_status", "past_due")),
+    count((q) => q.gte("created_at", weekAgo)),
+    sermonCount("done"),
+    sermonCount("pending"),
+    sermonCount("failed"),
+    sermonCount("done", "excerpt_status"),
+  ]);
 
   let listQuery = admin
     .from("profiles")
@@ -137,6 +159,22 @@ export default async function AdminPage({
         <Stat label="Devoted" value={devotedCount} small />
         <Stat label="Patron" value={patronCount} small />
       </div>
+
+      <h2 className="mt-10 font-display text-xl text-cream">Transcription</h2>
+      <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Stat label="Transcribed" value={transcriptDone} small />
+        <Stat label="Pending" value={transcriptPending} small warn={transcriptPending > 0} />
+        <Stat label="Failed" value={transcriptFailed} small warn={transcriptFailed > 0} />
+        <Stat label="Excerpts ready" value={excerptDone} small accent />
+      </div>
+      {(transcriptPending > 0 || transcriptFailed > 0) && (
+        <p className="mt-2 text-xs text-cream-faint">
+          The daily cron transcribes 8/run. For a bulk backfill run{" "}
+          <code className="text-cream-muted">npm run transcribe -- --watch</code>{" "}
+          locally (add <code className="text-cream-muted">--retry-failed</code> to
+          re-attempt failures). A stalled backlog usually means OpenAI credits ran out.
+        </p>
+      )}
 
       <div className="mt-10 rounded-2xl bg-ink-2 ring-1 ring-line overflow-hidden">
         <div className="p-5 border-b border-line flex items-center justify-between gap-4 flex-wrap">
