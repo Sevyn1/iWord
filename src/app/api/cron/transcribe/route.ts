@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { transcribePendingSermons, enrichTranscribedSermons } from "@/lib/ingestion/transcribe";
+import { embedPendingSermons } from "@/lib/ingestion/embed";
 
 /**
  * Scheduled transcription endpoint.
@@ -40,7 +41,12 @@ export async function GET(request: Request) {
   // Spend leftover time closing metadata gaps (scripture/duration) on sermons
   // transcribed before the pipeline learned to fill them.
   const enriched = await enrichTranscribedSermons({
-    timeBudgetMs: Math.max(0, 270_000 - (Date.now() - startedAt)),
+    timeBudgetMs: Math.max(0, 250_000 - (Date.now() - startedAt)),
   });
-  return NextResponse.json({ ...result, enriched });
+  // …then embed any transcribed-but-unembedded sermons for Ask iWord. Cheap
+  // and fast (text-only), so it usually clears the whole backlog here.
+  const embedded = await embedPendingSermons({
+    timeBudgetMs: Math.max(0, 280_000 - (Date.now() - startedAt)),
+  });
+  return NextResponse.json({ ...result, enriched, embedded });
 }

@@ -7,16 +7,20 @@ import { formatDuration, formatCount } from "@/lib/format";
 import { Waveform } from "./Waveform";
 import { PastorAvatar } from "./PastorAvatar";
 
-type Props = { sermon: Sermon };
+type Props = { sermon: Sermon; startAt?: number };
 
 /**
  * Full-width player used on the sermon detail page. Talks to the global
- * PlayerProvider so the mini-player stays in sync.
+ * PlayerProvider so the mini-player stays in sync. `startAt` (from ?t=, e.g.
+ * an Ask iWord citation) makes the first play begin at that second.
  */
-export function AudioPlayer({ sermon }: Props) {
+export function AudioPlayer({ sermon, startAt }: Props) {
   const { play, togglePlay, isPlaying, current, progress, duration, seek } =
     usePlayer();
   const isThis = current?.id === sermon.id;
+  // Pending deep-link seek: consumed by the first play of this sermon.
+  const startAtRef = React.useRef(startAt && startAt > 0 ? startAt : null);
+  const [pendingStart, setPendingStart] = React.useState(startAtRef.current);
   const displayProgress = isThis ? progress : 0;
   const displayDuration = isThis && duration ? duration : sermon.durationSec;
   const pastor = sermon.pastor;
@@ -25,6 +29,20 @@ export function AudioPlayer({ sermon }: Props) {
   const liveListeners = 40 + (parseInt(sermon.id.replace(/\D/g, ""), 10) * 137) % 380;
 
   const handlePrimary = () => {
+    const jumpTo = startAtRef.current;
+    if (jumpTo !== null) {
+      startAtRef.current = null;
+      setPendingStart(null);
+      if (!isThis) {
+        play(sermon);
+        // Seek shortly after src changes so the engine accepts it.
+        setTimeout(() => seek(jumpTo), 120);
+      } else {
+        seek(jumpTo);
+        if (!isPlaying) togglePlay();
+      }
+      return;
+    }
     if (!isThis) play(sermon);
     else togglePlay();
   };
@@ -93,10 +111,19 @@ export function AudioPlayer({ sermon }: Props) {
           </div>
           <div className="text-white font-medium truncate">{sermon.title}</div>
         </div>
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-leaf">
-          <span className="live-dot w-1.5 h-1.5 rounded-full bg-leaf" aria-hidden />
-          {formatCount(liveListeners)} listening now
-        </div>
+        {pendingStart !== null ? (
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-gold">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <path d="M7 5.5a1 1 0 0 1 1.55-.83l10 6.5a1 1 0 0 1 0 1.66l-10 6.5A1 1 0 0 1 7 18.5v-13Z" />
+            </svg>
+            Starts at {formatDuration(pendingStart)}
+          </div>
+        ) : (
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-leaf">
+            <span className="live-dot w-1.5 h-1.5 rounded-full bg-leaf" aria-hidden />
+            {formatCount(liveListeners)} listening now
+          </div>
+        )}
       </div>
 
       {/* Waveform scrubber */}

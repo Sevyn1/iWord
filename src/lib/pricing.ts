@@ -19,6 +19,7 @@ export const TIERS: SubscriptionTier[] = [
     tagline: "For the everyday listener.",
     features: [
       "Unlimited streaming, ad-free",
+      "Ask iWord — answers from real sermons",
       "Continue listening across devices",
       "60-second AI excerpts to share",
       "Personalized weekly digest",

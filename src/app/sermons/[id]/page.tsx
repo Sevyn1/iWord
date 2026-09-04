@@ -49,10 +49,15 @@ export async function generateMetadata({
 
 export default async function SermonDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ t?: string }>;
 }) {
   const { id } = await params;
+  const { t } = await searchParams;
+  // Deep link from Ask iWord citations: start playback at this second.
+  const startAt = Number.isFinite(Number(t)) && Number(t) > 0 ? Math.floor(Number(t)) : undefined;
   const sermon = await getSermonBySlug(id);
   if (!sermon) notFound();
   const pastor = await getPastorById(sermon.pastorId);
@@ -130,7 +135,7 @@ export default async function SermonDetailPage({
           </dl>
         </div>
 
-        <AudioPlayer sermon={sermon} />
+        <AudioPlayer sermon={sermon} startAt={startAt} />
       </div>
 
       <section className="mt-12 max-w-3xl">
