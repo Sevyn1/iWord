@@ -154,6 +154,24 @@ In production, add a webhook endpoint in the Stripe dashboard pointing at
 `customer.subscription.*`) and set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
 `STRIPE_PRICE_DEVOTED`, `STRIPE_PRICE_PATRON` in Vercel.
 
+## Shared AI memory
+
+Persistent, cross-agent project memory lives in [`AGENTS.md`](AGENTS.md) and
+`docs/` (`AI_CONTEXT.md`, `DECISIONS.md`, `CURRENT_STATE.md`, `SESSION_LOG.md`).
+Agents read these before substantial work and update them as part of finishing it.
+
+A lightweight, **non-blocking** freshness check reminds you to update shared
+memory when source/app code changed but none of those docs did (documentation,
+formatting, and lock-file-only changes are ignored):
+
+```bash
+npm run check:memory                 # check staged changes (falls back to unstaged)
+sh scripts/check-memory-freshness.sh HEAD~1..HEAD   # check a commit range
+
+# Optional: run it automatically before every commit (reminder only, never blocks)
+git config core.hooksPath .githooks
+```
+
 ## Next milestones
 
 1. **Auth + persistence** — Supabase (Postgres + Auth + RLS + Storage)

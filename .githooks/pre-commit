@@ -1,0 +1,4 @@
+#!/bin/sh
+# Non-blocking shared-memory freshness reminder.
+# Enable repo hooks once with:  git config core.hooksPath .githooks
+exec sh "$(git rev-parse --show-toplevel)/scripts/check-memory-freshness.sh"

@@ -22,6 +22,16 @@
 
 ---
 
+## 2026-09-11 — Shared-memory freshness check (GitHub Copilot)
+- **Goal:** Add a lightweight, non-blocking reminder to update shared memory when
+  code changes without a corresponding doc update.
+- **Did:** Added `scripts/check-memory-freshness.sh` (POSIX sh, no deps),
+  `.githooks/pre-commit`, and an `npm run check:memory` script; documented usage
+  in the README. Ignores doc-only, formatting-only (whitespace), lock-file, and
+  asset changes. Enabled locally via `git config core.hooksPath .githooks`.
+- **Decisions:** Keep it a warning (exit 0), not a gate, for now.
+- **Open/next:** Could promote to a hard CI gate later if desired.
+
 ## 2026-09-11 — Shared AI memory system + verification pass (GitHub Copilot)
 - **Goal:** Stand up a persistent shared memory system so all coding agents keep
   aligned across sessions, without changing app behavior.

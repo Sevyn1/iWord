@@ -11,7 +11,8 @@
     "backfill:sermon-art": "node --env-file=.env.local scripts/backfill-sermon-art.mjs",
     "resync:audio": "node --env-file=.env.local scripts/resync-audio-urls.mjs",
     "transcribe": "node --env-file=.env.local scripts/transcribe-sermons.mjs",
-    "embed": "node --env-file=.env.local scripts/embed-sermons.mjs"
+    "embed": "node --env-file=.env.local scripts/embed-sermons.mjs",
+    "check:memory": "sh scripts/check-memory-freshness.sh"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.68.0",

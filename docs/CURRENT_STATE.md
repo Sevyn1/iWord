@@ -30,6 +30,11 @@
   README env-template reference fixed from `.env.local.example` to `.env.example`.
   Follow-up added `docs/SESSION_LOG.md` plus a routine "update docs every session"
   workflow wired into `AGENTS.md` + Copilot instructions (all agents inherit it).
+- **Shared-memory freshness check** — `scripts/check-memory-freshness.sh`
+  (POSIX sh, no deps) + `.githooks/pre-commit` + `npm run check:memory`. Prints a
+  non-blocking warning when source/app code changed but no shared-memory doc did;
+  ignores doc/formatting/lock/asset-only changes. Enable hooks with
+  `git config core.hooksPath .githooks`.
 - **Ask iWord (RAG Q&A)** shipped in code (`e7da94f`) — flagship paid feature.
   `/ask` page (paid → `AskClient`, free/anon → upsell), `/api/ask` (paid-gated),
   citations deep-link to `/sermons/[slug]?t=SECONDS`, `AudioPlayer.startAt` seeks
