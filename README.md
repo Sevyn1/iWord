@@ -44,7 +44,7 @@ sign-up / sign-in / per-user data, follow **Supabase setup** below.
 4. **Create `.env.local`** at the repo root (it's gitignored):
 
    ```bash
-   cp .env.local.example .env.local
+   cp .env.example .env.local
    # then edit .env.local and paste your two values
    ```
 
