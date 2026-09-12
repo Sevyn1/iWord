@@ -22,6 +22,12 @@
 
 ## Recently completed
 
+- **Shared AI memory system** added (`fdee847`) — `AGENTS.md` shared rules (around
+  the untouched Next.js block), `.github/copilot-instructions.md`, and
+  `docs/{AI_CONTEXT,DECISIONS,CURRENT_STATE}.md`. Verified uncertain items against
+  the repo: migration 014 marked *application status unknown* (not "unapplied"),
+  stale transcription/backfill counts moved to a dated historical note, and the
+  README env-template reference fixed from `.env.local.example` to `.env.example`.
 - **Ask iWord (RAG Q&A)** shipped in code (`e7da94f`) — flagship paid feature.
   `/ask` page (paid → `AskClient`, free/anon → upsell), `/api/ask` (paid-gated),
   citations deep-link to `/sermons/[slug]?t=SECONDS`, `AudioPlayer.startAt` seeks
