@@ -10,6 +10,20 @@ Format: `## YYYY-MM — Title` · **Decision** · **Why** · **Consequences/note
 
 ---
 
+## 2026-09 — Shared AI memory system + routine doc-update workflow
+- **Decision:** Keep durable project memory in repo docs (`AGENTS.md`,
+  `docs/AI_CONTEXT.md`, `docs/DECISIONS.md`, `docs/CURRENT_STATE.md`,
+  `docs/SESSION_LOG.md`) rather than agent-private stores. Every agent (Copilot,
+  Claude, OpenCode, etc.) reads them before substantial work and updates them as
+  part of finishing work — including a `SESSION_LOG.md` entry at the end of each
+  session. All agents inherit this via `AGENTS.md` (Claude through `CLAUDE.md`'s
+  `@AGENTS.md` import; Copilot also via `.github/copilot-instructions.md`).
+- **Why:** A single shared source of truth keeps multiple AI agents aligned
+  across sessions; agent-local memory is siloed and drifts from the code.
+- **Notes:** Split by role — stable facts in `AI_CONTEXT.md`, live status in
+  `CURRENT_STATE.md`, rationale here, narrative in `SESSION_LOG.md`. Repo docs
+  win over any agent-local notes on conflict. No secrets in any of them.
+
 ## Catalog is DB-first with seed fallback
 - **Decision:** `src/lib/content.ts` reads the catalog from Supabase but falls
   back to in-memory sample data when the DB/env is unavailable.

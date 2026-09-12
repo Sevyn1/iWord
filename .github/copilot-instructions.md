@@ -15,15 +15,23 @@ Before making non-trivial changes, read all of:
    and their rationale.
 4. [`docs/CURRENT_STATE.md`](../docs/CURRENT_STATE.md) — current work, recently
    completed work, known issues, pending tasks, and next steps.
+5. [`docs/SESSION_LOG.md`](../docs/SESSION_LOG.md) — append-only narrative of past
+   agent sessions (newest first).
 
 ## Keep the memory current
+
+Updating the memory files is part of finishing the work — do it before a task is
+done (and before pushing):
 
 - Update [`docs/CURRENT_STATE.md`](../docs/CURRENT_STATE.md) after any meaningful
   change (and bump its `Last updated` date).
 - Add an entry to [`docs/DECISIONS.md`](../docs/DECISIONS.md) whenever you make an
   architectural or significant technical decision (record what and _why_).
+- Append a short entry to [`docs/SESSION_LOG.md`](../docs/SESSION_LOG.md) at the
+  end of each work session using the template in that file.
+- Update [`docs/AI_CONTEXT.md`](../docs/AI_CONTEXT.md) when a _stable_ fact changes.
 - Keep stable facts in `AI_CONTEXT.md`; keep temporary/in-progress info in
-  `CURRENT_STATE.md`.
+  `CURRENT_STATE.md`. Prefer these repo docs over any agent-local memory store.
 
 ## Framework
 
@@ -65,5 +73,6 @@ After meaningful work:
 
 - update docs/CURRENT_STATE.md
 - update docs/DECISIONS.md when a significant technical decision was made
+- append a session entry to docs/SESSION_LOG.md
 
 Treat these files as shared project memory across Copilot, OpenCode, Claude, and other agents.

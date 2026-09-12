@@ -28,6 +28,8 @@
   the repo: migration 014 marked *application status unknown* (not "unapplied"),
   stale transcription/backfill counts moved to a dated historical note, and the
   README env-template reference fixed from `.env.local.example` to `.env.example`.
+  Follow-up added `docs/SESSION_LOG.md` plus a routine "update docs every session"
+  workflow wired into `AGENTS.md` + Copilot instructions (all agents inherit it).
 - **Ask iWord (RAG Q&A)** shipped in code (`e7da94f`) — flagship paid feature.
   `/ask` page (paid → `AskClient`, free/anon → upsell), `/api/ask` (paid-gated),
   citations deep-link to `/sermons/[slug]?t=SECONDS`, `AudioPlayer.startAt` seeks

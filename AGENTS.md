@@ -21,16 +21,36 @@ where the last one left off. **Before doing substantial work, read all of:**
    and the reasoning behind them.
 4. [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) — current work, recently
    completed work, known issues, pending tasks, and next steps.
+5. [`docs/SESSION_LOG.md`](docs/SESSION_LOG.md) — append-only narrative of past
+   agent sessions (what happened and why), newest first.
+
+## Routine doc updates (every agent, every session)
+
+**This applies to all agents — GitHub Copilot, Claude, OpenCode, and any other.**
+Treat updating the memory files as part of finishing the work, not an optional
+extra. Do it before you consider a task done (and before pushing):
+
+1. **`docs/CURRENT_STATE.md`** — update after any meaningful change (features
+   shipped, migrations applied, issues found/fixed, status changes). Bump the
+   `Last updated` date.
+2. **`docs/DECISIONS.md`** — append an entry whenever you make an architectural
+   or otherwise significant technical decision (record the decision *and why*).
+3. **`docs/AI_CONTEXT.md`** — update when a *stable* fact changes (architecture,
+   services, conventions, deployment, constraints).
+4. **`docs/SESSION_LOG.md`** — append a short entry at the **end of every work
+   session** using the template in that file (goal / did / decisions / next).
+5. Keep these edits in the **same commit** as the code they describe when
+   practical, so history stays coherent.
 
 ## Keeping the memory current
 
-- **Update `docs/CURRENT_STATE.md`** after any meaningful change (features
-  shipped, migrations applied, issues found/fixed, status changes). Update its
-  `Last updated` date.
-- **Add to `docs/DECISIONS.md`** whenever you make an architectural or otherwise
-  significant technical decision — record the decision and *why*.
 - **Keep the split clean:** stable facts live in `AI_CONTEXT.md`; temporary /
-  in-progress information lives in `CURRENT_STATE.md`.
+  in-progress information lives in `CURRENT_STATE.md`; the running narrative
+  lives in `SESSION_LOG.md`; the *why* behind decisions lives in `DECISIONS.md`.
+- **Prefer the repo docs over agent-local memory.** Any agent-private notes
+  (e.g. an agent's own memory store) are historical/supporting context only —
+  when they disagree with current source, migrations, config, or these docs,
+  the repo wins.
 - **Preserve the Next.js rule:** always consult the local Next.js docs in
   `node_modules/next/dist/docs/` before relying on framework knowledge.
 
