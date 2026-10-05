@@ -1,24 +1,34 @@
 # iWord
 
-A YouTube-style streaming platform for church sermons. Listeners browse beloved
-pastors from around the world, stream or download messages, and follow the
-creators they love. This repo currently contains the **MVP web app** — a
-clickable, polished prototype with sample content.
+A sermon catalog and streaming web application built with AI coding assistance. The source implements a React/Next.js interface, Supabase/PostgreSQL data and authentication, Stripe integration, RSS ingestion, OpenAI transcription, and retrieval-based Q&A with timestamped citations.
+
+## Implementation and verification status
+
+This is an application in development. A source implementation is not proof that its live integration is configured or verified.
+
+| Capability | Source status | Verification boundary |
+| --- | --- | --- |
+| Catalog and React interface | Implemented with seed fallback | Can build without service credentials |
+| Supabase authentication, SQL migrations, private audio URLs | Implemented | Requires configured Supabase and applied migrations |
+| Stripe subscription integration | Implemented | Real billing flow is not verified in this audit |
+| RSS ingestion and normalization | Implemented | Fixture parsing regression tested; live feeds vary |
+| OpenAI transcription and excerpts | Implemented | Live processing requires credentials and available credits |
+| Ask iWord retrieval and citations | Implemented | Migration 014 and embeddings must be verified before claiming live end-to-end support |
+| Weekly digest | Planned | Not a completed subscription feature |
 
 ## Stack
 
-| Layer      | Tool                                             |
-| ---------- | ------------------------------------------------ |
-| Framework  | Next.js 16 (App Router, TypeScript, Turbopack)   |
-| UI         | Tailwind CSS v4                                  |
-| Typography | Fraunces (display) + Inter (UI), via `next/font` |
-| State      | React Context (`PlayerProvider`)                 |
-| Audio      | Native HTML5 `<audio>` (single shared element)   |
+React, Next.js App Router, TypeScript, Tailwind CSS, Supabase/PostgreSQL and pgvector, Stripe, OpenAI, ffmpeg, and Sentry. See `docs/AI_CONTEXT.md` for architecture and `docs/CURRENT_STATE.md` for operational limits.
 
-The MVP runs entirely locally with no external services. Subscriptions, auth,
-ingestion, transcription and the weekly digest are stubbed in the UI and will
-be wired to Stripe, Supabase, a Python `ffmpeg` / `yt-dlp` / Whisper worker,
-and Resend respectively in later milestones.
+## Tests and build
+
+```sh
+npm ci
+npm test    # Node 22.18+ or 24+; deterministic citation/RSS regression tests
+npm run build
+```
+
+Tests mock the RSS response and use no OpenAI credits or live database. They validate response parsing and citation references, not whether a model's claims are semantically supported. Never bypass the paid streaming or AI gates to make a demo appear functional.
 
 ## Run it
 
@@ -66,8 +76,8 @@ sign-up / sign-in / per-user data, follow **Supabase setup** below.
 | `/sermons/[slug]` | Sermon detail — player + about + related        |
 | `/pastors/[slug]` | Pastor profile — bio + their sermons            |
 | `/pricing`        | Subscription tiers (Seeker / Devoted / Patron)  |
-| `/auth/sign-in`   | Sign-in stub                                    |
-| `/auth/sign-up`   | Sign-up stub (collects city / ZIP)              |
+| `/auth/sign-in`   | Supabase sign-in                                    |
+| `/auth/sign-up`   | Supabase sign-up (collects city / ZIP)              |
 
 ## Folder layout
 
@@ -172,7 +182,10 @@ sh scripts/check-memory-freshness.sh HEAD~1..HEAD   # check a commit range
 git config core.hooksPath .githooks
 ```
 
-## Next milestones
+## Roadmap and older milestones
+
+The implementation/status table above supersedes the older milestone list below. Confirm current service configuration before treating any item as deployed.
+
 
 1. **Auth + persistence** — Supabase (Postgres + Auth + RLS + Storage)
 2. **Subscriptions** — Stripe Billing + Customer Portal, gating downloads + ad-free

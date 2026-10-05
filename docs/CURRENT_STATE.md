@@ -6,7 +6,7 @@
 > [DECISIONS.md](DECISIONS.md). Update this file after meaningful changes.
 > **Never** include secrets or real environment-variable values here.
 >
-> _Last updated: 2026-09-11_
+> _Last updated: 2026-10-04_
 
 ## Migrations
 
@@ -110,3 +110,13 @@
   AI-side; retrying flips them back to pending via the quota guard.
 - **Full-corpus cost estimate (prior notes):** ~$80–90 to transcribe the
   remaining backlog (~480 sermons); embeddings ~$0.01 per ~500 sermons.
+
+## Portfolio audit changes on review branch
+
+- Reproduced a credential-free production build failure: Navbar search lacked Suspense boundaries around useSearchParams. Added focused boundaries for desktop and mobile search.
+- Ask iWord now rejects malformed/uncited/out-of-range model responses instead of inventing fallback source cards; explicit unsupported answers return no sources. Added deterministic citation and RSS regression tests. This does not prove semantic faithfulness of model claims.
+- Removed the account badge claiming weekly-digest subscription while that feature remains planned.
+- Updated dependency pins and README status wording. Live Supabase, Stripe, transcription, and RAG execution are not verified by this audit; no production data or paid API calls used.
+- Changes are prepared for a draft PR, not deployed to main.
+
+Verification: 7 citation/RSS regression tests passed, the credential-free production build completed all 46 prerender targets, and npm audit reported no vulnerabilities after patches. These checks do not validate live billing or model execution.

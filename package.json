@@ -12,7 +12,8 @@
     "resync:audio": "node --env-file=.env.local scripts/resync-audio-urls.mjs",
     "transcribe": "node --env-file=.env.local scripts/transcribe-sermons.mjs",
     "embed": "node --env-file=.env.local scripts/embed-sermons.mjs",
-    "check:memory": "sh scripts/check-memory-freshness.sh"
+    "check:memory": "sh scripts/check-memory-freshness.sh",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.68.0",
@@ -20,9 +21,9 @@
     "@supabase/supabase-js": "^2.108.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "fast-xml-parser": "^4.5.7",
+    "fast-xml-parser": "5.11.2",
     "ffmpeg-static": "^5.2.0",
-    "next": "16.2.9",
+    "next": "16.3.8",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "stripe": "^22.2.1"
