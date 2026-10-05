@@ -79,7 +79,7 @@ export function Navbar({
         </nav>
 
         <div className="flex-1 max-w-md mx-auto hidden md:block">
-          <SearchBox />
+          <React.Suspense fallback={null}><SearchBox /></React.Suspense>
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
@@ -154,7 +154,7 @@ function MobileMenu({
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
       />
       <div className="relative bg-ink border-b border-line px-4 sm:px-6 pt-4 pb-6 flex flex-col gap-4 max-h-[calc(100dvh-4rem)] overflow-y-auto">
-        <SearchBox onSubmit={onClose} />
+        <React.Suspense fallback={null}><SearchBox onSubmit={onClose} /></React.Suspense>
 
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => {

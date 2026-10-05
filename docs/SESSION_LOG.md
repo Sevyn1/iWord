@@ -54,3 +54,9 @@
 - **Open/next:** Take Ask iWord live (apply migration 014, top up OpenAI, run
   `npm run embed`, E2E test) and finish the transcription backfill — see
   `docs/CURRENT_STATE.md` for the current task list.
+
+## 2026-10-04 — Portfolio readiness audit (Codex)
+- **Goal:** Verify completed claims and correct reproducible defects without deploying.
+- **Did:** Reproduced build failure; added Navbar Suspense boundaries, strict citation parsing/tests, RSS fixture tests, dependency patches, and accurate README status; removed misleading digest badge.
+- **Decisions:** Cite actual references only; separate code implementation from live verification.
+- **Open/next:** Confirm migration 014, service configuration, credits, and end-to-end citations before claiming production RAG completion. Review draft PR before deploying.

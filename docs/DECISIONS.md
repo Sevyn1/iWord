@@ -131,3 +131,8 @@ Format: `## YYYY-MM — Title` · **Decision** · **Why** · **Consequences/note
   (follows / topic / popularity / recency / region) behind a seam.
 - **Why:** Defer complexity; ship simpler surfaces first.
 - **Notes:** Requires populating `listens.duration_sec` (currently always 0).
+
+## 2026-10 — Reject unsupported citation output
+- **Decision:** Parse strict JSON with an explicit support flag. Require in-range citation references for a supported answer; never attach arbitrary retrieved passages to uncited prose.
+- **Why:** Source cards must correspond to citations the answer actually uses. Mechanical citation validation cannot prove semantic grounding.
+- **Notes:** Explicit abstention returns a fixed no-evidence response; malformed output produces 502. Add regression tests without live model calls.
