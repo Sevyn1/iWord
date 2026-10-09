@@ -22,6 +22,30 @@
 
 ---
 
+## 2026-10-09 — Ask iWord taken LIVE end-to-end (GitHub Copilot)
+- **Goal:** Take the already-shipped Ask iWord (RAG Q&A) live in production.
+- **Did:**
+  - Provisioned this machine (`aihub`): `npm install`, Vercel CLI login +
+    `vercel link` (project `i-word`), rebuilt the gitignored `.env.local`
+    (Vercel "Sensitive" vars are write-only, so keys were recovered via the
+    dashboards: Supabase `sb_secret_*` service key + a fresh look at OpenAI
+    keys — the active one ends `_sUA`; the revoked Nov-2025 key still floating
+    around in old notes ends `k1YA` and is dead).
+  - Applied **migration 014** via the Supabase Dashboard SQL Editor
+    ("Success. No rows returned") and verified `sermon_chunks` + RPC live.
+  - Ran `npm run embed`: **94 sermons → 2,263 chunks, 0 failed** (~1¢).
+  - Verified retrieval directly (guilt/forgiveness → Sproul "Forgiveness"
+    @ 324s/831s/234s) and did a full E2E on production `/ask` with the owner
+    account (set to plan `devoted`): grounded answer, 6 citations across 2
+    sermons, play buttons deep-linking to the exact second.
+  - Added a disagreement rule to the `askCatalog()` system prompt (report
+    differing pastors by name; never blend into fake consensus).
+- **Decisions:** "Ask iWord reports pastor disagreement, never harmonizes it"
+  (see DECISIONS.md).
+- **Open/next:** Transcription backfill remains the big lever (94 of ~570+
+  transcribed); owner profile `stripe_status` is `canceled` so a future Stripe
+  webhook may flip the manually-set `devoted` plan back.
+
 ## 2026-10-09 — Logo redesign: "Radiant Book" (GitHub Copilot)
 - **Goal:** Replace the logo mark with a new concept.
 - **Did:** Proposed 4 SVG concepts (radiant book, lamp/flame, sound-wave "i",

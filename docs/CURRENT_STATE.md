@@ -16,12 +16,21 @@
   *application status cannot be proven from the repo alone.* Confirm against the
   live database before assuming a migration is (un)applied.
 - **Migration 014 (Ask iWord: pgvector, `sermon_chunks`, `match_sermon_chunks`
-  RPC): application status unknown** — the file is present in the repo but there
-  is no repo-verifiable signal that it has been run in Supabase. Per prior notes
-  it was still pending; verify before taking Ask iWord live (see pending tasks).
+  RPC): APPLIED 2026-10-09** — run via the Dashboard SQL Editor and verified
+  against the live DB (`sermon_chunks` responds, RPC returns ranked matches).
 
 ## Recently completed
 
+- **Ask iWord is LIVE in production (2026-10-09)** — migration 014 applied,
+  `npm run embed` backfilled **94 transcribed sermons → 2,263 chunks, 0 failed**,
+  and a full E2E test passed on the live site: signed-in Devoted account asked a
+  real question, got a grounded answer with 6 citations across 2 sermons, each
+  deep-linking to the exact second (`?t=…`). Semantic search verified directly
+  (guilt/forgiveness → R.C. Sproul "Forgiveness" @ 5:24 etc.). System prompt
+  gained a disagreement rule (see DECISIONS). Ops notes: this machine now has a
+  populated `.env.local` (Vercel-linked; service key + OpenAI key current);
+  owner account `favourojo24@gmail.com` set to plan `devoted` (was `free`,
+  `stripe_status` is `canceled` — a future Stripe webhook may rewrite the plan).
 - **Logo redesign — "Radiant Book"** — `src/components/Logo.tsx` mark replaced:
   the sun-dotted "i" is now an open book under a burst of light (same gold/navy
   /cream palette, same outer ring, same props API `size`/`showWordmark`/
@@ -85,11 +94,8 @@
 
 ## Pending tasks / next steps
 
-1. **Take Ask iWord live** (highest priority — flagship feature):
-   - Apply **migration 014** in the Supabase Dashboard SQL Editor.
-   - Top up OpenAI credits.
-   - Run `npm run embed` (~$0.01 per ~500 sermons) to populate `sermon_chunks`.
-   - Do a real Q&A end-to-end test with citations + deep-link playback.
+1. ~~**Take Ask iWord live**~~ — **DONE 2026-10-09** (migration applied, 94
+   sermons embedded, E2E verified on production — see "Recently completed").
 2. **Finish the transcription backfill** (counts not repo-verifiable — check the
    live DB / admin stats first; prior notes estimated ~480 pending, ~$80–90 for
    the full corpus): top up OpenAI, then run

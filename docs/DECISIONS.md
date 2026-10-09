@@ -131,3 +131,14 @@ Format: `## YYYY-MM — Title` · **Decision** · **Why** · **Consequences/note
   (follows / topic / popularity / recency / region) behind a seam.
 - **Why:** Defer complexity; ship simpler surfaces first.
 - **Notes:** Requires populating `listens.duration_sec` (currently always 0).
+
+## Ask iWord reports pastor disagreement, never harmonizes it
+- **Decision:** The `askCatalog()` system prompt instructs the model that when
+  retrieved passages reflect genuinely different positions, it must present each
+  position attributed to its pastor by name (with citations), not blend them
+  into a single consensus answer.
+- **Why:** The default LLM behavior is to smooth conflicting sources into one
+  mushy answer that *no* cited pastor actually preached — manufactured consensus
+  is exactly the "made-up theology" the feature promises to avoid. Faithful
+  attribution of disagreement preserves listener trust and doubles as discovery
+  ("hear both cases in full").
