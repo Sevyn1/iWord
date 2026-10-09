@@ -36,10 +36,14 @@
   homepage success state.
 - **Decisions:** Members auto-included with a single token unsubscribe; Resend
   via fetch; skip-clean degradation (see DECISIONS.md).
-- **Open/next:** Set `RESEND_API_KEY` + `RESEND_FROM` (verified domain) in
-  Vercel to activate sending; test with
-  `/api/cron/digest?only=<email>&limit=1`. Consider a likes feature to deepen
-  personalization, and an account-page digest toggle.
+- **Open/next:** Verify a real sending domain in Resend and update
+  `RESEND_FROM` — done same session: Resend account created (GitHub OAuth),
+  send-only API key generated, env set in Vercel production + `.env.local`,
+  personalized test digest sent to the owner
+  (`/api/cron/digest?only=…` → `sent: 1, failed: 0`), production redeployed so
+  the Sunday cron sees the env. Until a domain is verified,
+  `onboarding@resend.dev` only delivers to the account owner. Also consider a
+  likes feature to deepen personalization, and an account-page digest toggle.
 
 ## 2026-10-09 — Ask iWord floating widget (GitHub Copilot)
 - **Goal:** Surface Ask iWord site-wide as a corner chatbot, expandable to the

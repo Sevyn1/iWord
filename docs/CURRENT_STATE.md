@@ -33,8 +33,12 @@
   "Because you've been listening"), plus "Trending this week" and "New in the
   library" — every sermon with its AI write-up (`summary`). Homepage strip now
   actually stores signups via `DigestSignup.tsx` (previously it just redirected
-  to sign-up). **Sending requires `RESEND_API_KEY` + `RESEND_FROM` (verified
-  domain) in Vercel — not yet configured; the cron skips cleanly until then.**
+  to sign-up). **Resend configured 2026-10-09**: `RESEND_API_KEY` +
+  `RESEND_FROM` set in Vercel production and `.env.local`; test digest sent and
+  delivered to the owner. **Caveat:** the sender is `onboarding@resend.dev`
+  (no verified domain yet), which only delivers to the Resend account owner's
+  email — verify a real domain in Resend and update `RESEND_FROM` before the
+  digest can reach other subscribers.
   Full subscribe → unsubscribe → re-subscribe lifecycle verified locally
   against the live DB.
 - **Ask iWord floating widget (site-wide)** — `AskWidget.tsx` renders a gold
@@ -126,9 +130,10 @@
    the full corpus): top up OpenAI, then run
    `npm run transcribe -- --watch --retry-failed` locally. The `--watch` flag
    auto-resumes when credits return.
-3. ~~**Tier 2 remaining:** Resend weekly digest~~ — **shipped 2026-10-09**; to
-   activate sending, create a Resend account, verify the domain, and set
-   `RESEND_API_KEY` + `RESEND_FROM` in Vercel (cron skips cleanly until then).
+3. ~~**Tier 2 remaining:** Resend weekly digest~~ — **shipped + Resend
+   configured 2026-10-09**. Remaining: verify a real sending domain in Resend
+   and update `RESEND_FROM` (the `onboarding@resend.dev` sender only delivers
+   to the account owner).
 4. **Tier 3 (later):** admin depth, ingestion queue, downloads, observability.
 5. **Recommendations (later):** populate `listens.duration_sec`, then add a
    heuristic `getForYou()` behind a seam.
