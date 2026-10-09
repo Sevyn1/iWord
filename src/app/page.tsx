@@ -290,9 +290,46 @@ export default async function HomePage() {
         </section>
       )}
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-xs text-cream-faint">
-        {allSermons.length} sermons in the library · more on the way.
-      </div>
+      {/* Closing stats — library at a glance */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4 mb-10">
+        <div className="border-t border-line pt-10 flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16 text-center">
+          <div>
+            <div className="font-display text-3xl sm:text-4xl text-gold tabular-nums">
+              {allSermons.length.toLocaleString()}
+            </div>
+            <div className="mt-1 text-xs uppercase tracking-[0.18em] text-cream-faint">
+              sermons in the library
+            </div>
+          </div>
+          <div aria-hidden className="hidden sm:block h-10 w-px bg-line" />
+          <div>
+            <div className="font-display text-3xl sm:text-4xl text-cream tabular-nums">
+              {pastors.length.toLocaleString()}
+            </div>
+            <div className="mt-1 text-xs uppercase tracking-[0.18em] text-cream-faint">
+              beloved pastors
+            </div>
+          </div>
+          <div aria-hidden className="hidden sm:block h-10 w-px bg-line" />
+          <div>
+            <div className="font-display text-3xl sm:text-4xl text-cream">Daily</div>
+            <div className="mt-1 text-xs uppercase tracking-[0.18em] text-cream-faint">
+              new messages added
+            </div>
+          </div>
+        </div>
+        <div className="mt-8 text-center">
+          <Link
+            href="/sermons"
+            className="inline-flex items-center gap-2 text-sm text-cream-muted hover:text-gold transition-colors"
+          >
+            Explore the whole library
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
