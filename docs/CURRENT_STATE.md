@@ -24,6 +24,21 @@
 
 ## Recently completed
 
+- **Navbar decluttered (2026-10-09)** — top nav is now Home / Browse / Clips /
+  Churches (+ Following for members). "Ask" removed (the floating AskWidget
+  bubble is the entry point) and "Pricing" removed (Subscribe CTA + footer
+  already link it). Admin link remains gated by `profiles.is_admin`
+  (server-checked in `UserMenu`) — it only appears for admin accounts.
+- **Content expansion run (2026-10-09, partial)** — manual ingest pass added 4
+  new sermons from existing feeds. **10 curated pastor feeds registered** via
+  iTunes search (Tony Evans, Charles Stanley, David Jeremiah, Adrian Rogers,
+  Greg Laurie, Alistair Begg, Priscilla Shirer, Michael Youssef, Voddie
+  Baucham, Billy Graham/BGEA) with **auto_publish=true per owner request** —
+  the next ingest (daily 08:00 cron) will take their episodes straight live.
+  Flip `feeds.auto_publish` back to false afterwards if future episodes should
+  go through `/admin/review`. A broader term-based discovery pass
+  (`INGEST_DISCOVERY_TERMS` set locally) was started but stopped mid-run by
+  the owner; any feeds it registered default to review.
 - **"Daily Bread" clips feed (2026-10-09)** — `/clips`: a Shorts/TikTok-style
   vertical feed of the ~90 AI sermon excerpts (`ClipsFeed.tsx` + `getClips()`
   in `lib/content.ts`, shuffled per request). Scroll-snap, one shared audio

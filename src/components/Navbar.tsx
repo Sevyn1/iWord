@@ -5,13 +5,13 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Logo } from "./Logo";
 
+// Keep the top nav tight: Ask lives in the floating AskWidget bubble, and
+// Pricing is reachable via the Subscribe CTA + footer.
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/sermons", label: "Browse" },
   { href: "/clips", label: "Clips" },
-  { href: "/ask", label: "Ask" },
   { href: "/churches", label: "Churches" },
-  { href: "/pricing", label: "Pricing" },
 ];
 
 /** Nav links shown only to signed-in members. */

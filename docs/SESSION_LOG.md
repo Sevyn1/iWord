@@ -22,6 +22,22 @@
 
 ---
 
+## 2026-10-09 — Content expansion + navbar declutter (GitHub Copilot)
+- **Goal:** More catalog content; tidier top nav.
+- **Did:** Manual ingest pass (+4 sermons). Registered 10 curated pastor feeds
+  (iTunes search, service-role upsert into `feeds`); owner asked to "put it
+  live", so `auto_publish=true` was set on those 10 — tomorrow's 08:00 cron
+  ingests them straight to published. A term-based discovery pass was started
+  locally but stopped by the owner mid-run. Navbar reduced to
+  Home/Browse/Clips/Churches: Ask now lives only in the floating widget,
+  Pricing only in the Subscribe CTA + footer. Confirmed the Admin nav link is
+  `profiles.is_admin`-gated (visible to the owner only because their profile
+  is admin).
+- **Decisions:** none new.
+- **Open/next:** After the pastor feeds' first ingest, consider flipping their
+  `auto_publish` back to false so future episodes go through review; feeds
+  from generic discovery stay review-gated.
+
 ## 2026-10-09 — "Daily Bread" clips feed (GitHub Copilot)
 - **Goal:** A growth surface: Shorts-style vertical feed of the existing 60s
   AI excerpts, free for everyone, funnelling into full sermons.
