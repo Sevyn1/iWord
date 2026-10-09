@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   // ffmpeg-static ships a native binary; keep it external so Next's bundler
   // doesn't inline it and Vercel traces the binary into the cron function.
   serverExternalPackages: ["ffmpeg-static"],
+  // Dev-only: allow LAN-IP access to dev resources (hydration chunks, HMR)
+  // so the app can be previewed from other devices/browsers on the network.
+  allowedDevOrigins: ["192.168.2.129"],
 };
 
 export default withSentryConfig(nextConfig, {

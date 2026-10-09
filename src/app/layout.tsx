@@ -9,7 +9,8 @@ import { Footer } from "@/components/Footer";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { BillingAlert } from "@/components/BillingAlert";
 import { UserMenu } from "@/components/UserMenu";
-import { getCurrentAccount, FREE_MONTHLY_STREAMS } from "@/lib/account";
+import { AskWidget } from "@/components/AskWidget";
+import { getCurrentAccount, isPaidPlan, FREE_MONTHLY_STREAMS } from "@/lib/account";
 import { getMonthlyListenedIds } from "@/lib/listens";
 import { SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION, SITE_URL } from "@/lib/site";
 
@@ -79,6 +80,7 @@ export default async function RootLayout({
           <main id="main-content" className="flex-1 pb-24">{children}</main>
           <Footer />
           <MiniPlayer />
+          <AskWidget canAsk={isPaidPlan(account?.plan)} />
         </PlayerProvider>
         <Analytics />
         <SpeedInsights />

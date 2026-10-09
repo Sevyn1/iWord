@@ -22,6 +22,22 @@
 
 ---
 
+## 2026-10-09 — Ask iWord floating widget (GitHub Copilot)
+- **Goal:** Surface Ask iWord site-wide as a corner chatbot, expandable to the
+  full page, instead of living only on `/ask`.
+- **Did:** Added `src/components/AskWidget.tsx` (client; launcher + panel,
+  Escape closes, hidden on `/ask` + `/admin`, lifts above MiniPlayer when audio
+  plays), added a `compact` prop to `AskClient`, wired into `layout.tsx` with
+  `canAsk={isPaidPlan(account?.plan)}`. Debugged two dev-env traps: Next 16
+  blocks cross-origin dev resources from LAN IPs (fixed via `allowedDevOrigins`
+  in `next.config.ts`) and `vercel env pull` `"[SENSITIVE]"` placeholders crash
+  Sentry's client init and kill hydration (blanked them in `.env.local`).
+  Verified both widget states (upsell + paid compact ask) in the browser.
+- **Decisions:** none new (reuses the existing paid-gate pattern; server API
+  remains the enforcement point).
+- **Open/next:** Consider remembering panel open-state across navigations, and
+  a small "new answer" badge when a background answer completes.
+
 ## 2026-10-09 — Ask iWord taken LIVE end-to-end (GitHub Copilot)
 - **Goal:** Take the already-shipped Ask iWord (RAG Q&A) live in production.
 - **Did:**

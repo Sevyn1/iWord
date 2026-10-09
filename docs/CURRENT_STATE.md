@@ -21,6 +21,15 @@
 
 ## Recently completed
 
+- **Ask iWord floating widget (site-wide)** — `AskWidget.tsx` renders a gold
+  "Ask" launcher bottom-right on every page (hidden on `/ask` and `/admin`),
+  opening a compact chat-style panel that reuses `AskClient` (new `compact`
+  prop). Expand icon jumps to the full `/ask` page; paid members get the
+  question box, others a short Devoted upsell (mirrors the page gate — the API
+  stays the enforcement point). Lifts above the MiniPlayer via `usePlayer()`.
+  Dev note: `allowedDevOrigins` added to `next.config.ts` for LAN-IP preview,
+  and `vercel env pull` writes literal `"[SENSITIVE]"` placeholders that crash
+  Sentry client init (breaking hydration) — blank them out in `.env.local`.
 - **Ask iWord is LIVE in production (2026-10-09)** — migration 014 applied,
   `npm run embed` backfilled **94 transcribed sermons → 2,263 chunks, 0 failed**,
   and a full E2E test passed on the live site: signed-in Devoted account asked a

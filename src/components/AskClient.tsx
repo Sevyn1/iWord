@@ -25,8 +25,9 @@ const EXAMPLES = [
 /**
  * Ask iWord — question box + grounded answer with citations that deep-link to
  * the exact moment in each sermon (/sermons/[slug]?t=SECONDS).
+ * `compact` renders a tighter layout for the floating AskWidget panel.
  */
-export function AskClient() {
+export function AskClient({ compact = false }: { compact?: boolean }) {
   const [question, setQuestion] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -69,7 +70,7 @@ export function AskClient() {
           e.preventDefault();
           ask(question);
         }}
-        className="flex items-center gap-2 rounded-2xl bg-ink-2 ring-1 ring-line focus-within:ring-gold p-2 pl-4"
+        className={`flex items-center gap-2 rounded-2xl bg-ink-2 ring-1 ring-line focus-within:ring-gold ${compact ? "p-1.5 pl-3" : "p-2 pl-4"}`}
       >
         <input
           type="text"
@@ -77,13 +78,13 @@ export function AskClient() {
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ask anything — answered from real sermons"
           maxLength={300}
-          className="flex-1 bg-transparent outline-none text-cream placeholder:text-cream-faint text-sm sm:text-base py-2"
+          className={`flex-1 bg-transparent outline-none text-cream placeholder:text-cream-faint ${compact ? "text-sm py-1.5" : "text-sm sm:text-base py-2"}`}
           aria-label="Your question"
         />
         <button
           type="submit"
           disabled={loading || question.trim().length < 3}
-          className="px-5 py-2.5 rounded-xl bg-gold text-ink text-sm font-medium hover:bg-gold-hot disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className={`rounded-xl bg-gold text-ink text-sm font-medium hover:bg-gold-hot disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${compact ? "px-4 py-2" : "px-5 py-2.5"}`}
         >
           {loading ? "Searching…" : "Ask"}
         </button>
@@ -91,7 +92,7 @@ export function AskClient() {
 
       {!asked && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {EXAMPLES.map((ex) => (
+          {(compact ? EXAMPLES.slice(0, 2) : EXAMPLES).map((ex) => (
             <button
               key={ex}
               type="button"
@@ -108,7 +109,7 @@ export function AskClient() {
       )}
 
       {loading && (
-        <div className="mt-8 space-y-3" aria-label="Searching sermons">
+        <div className={`${compact ? "mt-5" : "mt-8"} space-y-3`} aria-label="Searching sermons">
           <div className="h-4 w-3/4 rounded bg-ink-3 animate-pulse" />
           <div className="h-4 w-full rounded bg-ink-3 animate-pulse" />
           <div className="h-4 w-5/6 rounded bg-ink-3 animate-pulse" />
@@ -119,15 +120,15 @@ export function AskClient() {
       )}
 
       {error && (
-        <div role="alert" className="mt-8 rounded-xl bg-rose/10 ring-1 ring-rose/40 px-4 py-3 text-sm text-rose">
+        <div role="alert" className={`${compact ? "mt-5" : "mt-8"} rounded-xl bg-rose/10 ring-1 ring-rose/40 px-4 py-3 text-sm text-rose`}>
           {error}
         </div>
       )}
 
       {answer !== null && !loading && (
-        <div className="mt-8">
+        <div className={compact ? "mt-5" : "mt-8"}>
           <div className="text-xs uppercase tracking-[0.18em] text-cream-faint">Answer</div>
-          <div className="mt-3 space-y-4 text-cream/90 leading-relaxed">
+          <div className={`mt-3 space-y-4 text-cream/90 leading-relaxed ${compact ? "text-sm" : ""}`}>
             {answer.split(/\n{2,}/).map((para, i) => (
               <p key={i}>{renderWithCitations(para)}</p>
             ))}
@@ -138,7 +139,7 @@ export function AskClient() {
           </p>
 
           {sources.length > 0 && (
-            <div className="mt-8">
+            <div className={compact ? "mt-5" : "mt-8"}>
               <div className="text-xs uppercase tracking-[0.18em] text-cream-faint">
                 From the sermons
               </div>
@@ -147,7 +148,7 @@ export function AskClient() {
                   <li
                     key={s.n}
                     id={`ask-source-${s.n}`}
-                    className="rounded-2xl bg-ink-2 ring-1 ring-line p-4 sm:p-5 scroll-mt-24 target:ring-gold/60"
+                    className={`rounded-2xl bg-ink-2 ring-1 ring-line scroll-mt-24 target:ring-gold/60 ${compact ? "p-3" : "p-4 sm:p-5"}`}
                   >
                     <div className="flex items-start gap-3">
                       <span
@@ -195,7 +196,7 @@ export function AskClient() {
               setAsked(null);
               setQuestion("");
             }}
-            className="mt-8 text-sm text-cream-muted hover:text-cream underline underline-offset-4"
+            className={`${compact ? "mt-5" : "mt-8"} text-sm text-cream-muted hover:text-cream underline underline-offset-4`}
           >
             Ask another question
           </button>
