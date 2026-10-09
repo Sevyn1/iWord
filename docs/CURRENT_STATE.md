@@ -10,17 +10,33 @@
 
 ## Migrations
 
-- Migration files exist in `supabase/migrations/` through **014**
-  (`014_ask_iword_embeddings.sql`).
+- Migration files exist in `supabase/migrations/` through **015**
+  (`015_weekly_digest.sql`).
 - Migrations are applied **manually** in the Supabase Dashboard SQL Editor, so
   *application status cannot be proven from the repo alone.* Confirm against the
   live database before assuming a migration is (un)applied.
+- **Migration 015 (weekly digest: `newsletter_subscribers`): APPLIED 2026-10-09**
+  — run via the Dashboard SQL Editor; subscribe/unsubscribe lifecycle verified
+  against the live DB.
 - **Migration 014 (Ask iWord: pgvector, `sermon_chunks`, `match_sermon_chunks`
   RPC): APPLIED 2026-10-09** — run via the Dashboard SQL Editor and verified
   against the live DB (`sermon_chunks` responds, RPC returns ranked matches).
 
 ## Recently completed
 
+- **Weekly digest shipped (2026-10-09)** — `src/lib/digest.ts` +
+  `/api/newsletter/{subscribe,unsubscribe}` + `/api/cron/digest` (Sundays 09:00
+  UTC, CRON_SECRET bearer; see `vercel.json`) + migration 015
+  (`newsletter_subscribers`, applied). Members are auto-included (seeded into
+  the subscribers table for a unified token unsubscribe); personalized sections
+  built from `follows` + last-30-day `listens` ("New from pastors you follow",
+  "Because you've been listening"), plus "Trending this week" and "New in the
+  library" — every sermon with its AI write-up (`summary`). Homepage strip now
+  actually stores signups via `DigestSignup.tsx` (previously it just redirected
+  to sign-up). **Sending requires `RESEND_API_KEY` + `RESEND_FROM` (verified
+  domain) in Vercel — not yet configured; the cron skips cleanly until then.**
+  Full subscribe → unsubscribe → re-subscribe lifecycle verified locally
+  against the live DB.
 - **Ask iWord floating widget (site-wide)** — `AskWidget.tsx` renders a gold
   "Ask" launcher bottom-right on every page (hidden on `/ask` and `/admin`),
   opening a compact chat-style panel that reuses `AskClient` (new `compact`
@@ -110,7 +126,9 @@
    the full corpus): top up OpenAI, then run
    `npm run transcribe -- --watch --retry-failed` locally. The `--watch` flag
    auto-resumes when credits return.
-3. **Tier 2 remaining:** Resend weekly digest (transcription + excerpts done).
+3. ~~**Tier 2 remaining:** Resend weekly digest~~ — **shipped 2026-10-09**; to
+   activate sending, create a Resend account, verify the domain, and set
+   `RESEND_API_KEY` + `RESEND_FROM` in Vercel (cron skips cleanly until then).
 4. **Tier 3 (later):** admin depth, ingestion queue, downloads, observability.
 5. **Recommendations (later):** populate `listens.duration_sec`, then add a
    heuristic `getForYou()` behind a seam.
@@ -119,7 +137,8 @@
 
 - Push to `origin/main` auto-deploys via Vercel.
 - Cron: `/api/cron/ingest` 08:00, `/api/cron/transcribe` 08:30 (transcribe →
-  enrich → embed within a time budget; leftovers roll to the next run).
+  enrich → embed within a time budget; leftovers roll to the next run),
+  `/api/cron/digest` Sundays 09:00 (weekly digest email via Resend).
 - Admin: `/admin` gated by `profiles.is_admin` (only the service role can set it).
 
 ## Historical notes (dated snapshots — NOT current)

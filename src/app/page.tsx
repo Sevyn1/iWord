@@ -5,6 +5,7 @@ import { getFollowedPastorIds } from "@/lib/follows";
 import { PastorAvatar } from "@/components/PastorAvatar";
 import { resolveCountry } from "@/lib/geo";
 import { Logo } from "@/components/Logo";
+import { DigestSignup } from "@/components/DigestSignup";
 import { Thumbnail } from "@/components/Thumbnail";
 import { NowPlayingTicker } from "@/components/NowPlayingTicker";
 import { formatCount } from "@/lib/format";
@@ -284,25 +285,7 @@ export default async function HomePage() {
                 happening nearby.
               </p>
             </div>
-            <form
-              action="/auth/sign-up"
-              method="get"
-              className="relative flex flex-col sm:flex-row gap-3"
-            >
-              <input
-                type="email"
-                name="email"
-                required
-                placeholder="you@example.com"
-                className="flex-1 px-4 py-3 rounded-full bg-ink ring-1 ring-line focus:ring-gold outline-none text-cream placeholder:text-cream-faint"
-              />
-              <button
-                type="submit"
-                className="px-5 py-3 rounded-full bg-gold text-ink font-medium hover:bg-gold-hot active:scale-95 transition-all"
-              >
-                Get the digest
-              </button>
-            </form>
+            <DigestSignup />
           </div>
         </section>
       )}

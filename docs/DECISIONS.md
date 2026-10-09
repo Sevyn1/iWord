@@ -142,3 +142,15 @@ Format: `## YYYY-MM — Title` · **Decision** · **Why** · **Consequences/note
   is exactly the "made-up theology" the feature promises to avoid. Faithful
   attribution of disagreement preserves listener trust and doubles as discovery
   ("hear both cases in full").
+
+## Weekly digest: members auto-included, one token unsubscribe, Resend via fetch
+- **Decision:** The weekly digest (Sunday cron) emails every member plus
+  anonymous homepage signups. At send time member emails are seeded into
+  `newsletter_subscribers` so a single token-based unsubscribe covers both
+  audiences. Personalization comes from `follows` + recent `listens` (no likes
+  table yet); every sermon card carries its AI `summary` write-up. Resend is
+  called via plain `fetch` (no SDK dependency), and the whole send skips
+  cleanly when `RESEND_API_KEY`/`RESEND_FROM` are absent.
+- **Why:** One unsubscribe mechanism avoids a `profiles` opt-out column and
+  keeps compliance simple; follows/listens are the strongest existing signals;
+  graceful degradation matches the repo-wide integration convention.

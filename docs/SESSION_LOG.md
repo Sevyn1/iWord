@@ -22,6 +22,25 @@
 
 ---
 
+## 2026-10-09 — Weekly digest shipped (GitHub Copilot)
+- **Goal:** Build the promised weekly digest/newsletter: personalized from what
+  members follow and listen to, plus trending/new sermons with their write-ups.
+- **Did:** Migration 015 (`newsletter_subscribers`, applied via Dashboard);
+  `src/lib/digest.ts` (recipient collection incl. member seeding, batched
+  follows/listens signals, section assembly, branded HTML renderer, Resend via
+  fetch); `/api/newsletter/subscribe` + `/api/newsletter/unsubscribe` (token,
+  friendly HTML page) + `/api/cron/digest` (bearer CRON_SECRET, Sundays 09:00
+  UTC in `vercel.json`); homepage strip wired to real storage via
+  `DigestSignup.tsx`. Verified locally against the live DB: subscribe (valid +
+  invalid), unsubscribe, re-subscribe, cron 401, graceful skip without Resend,
+  homepage success state.
+- **Decisions:** Members auto-included with a single token unsubscribe; Resend
+  via fetch; skip-clean degradation (see DECISIONS.md).
+- **Open/next:** Set `RESEND_API_KEY` + `RESEND_FROM` (verified domain) in
+  Vercel to activate sending; test with
+  `/api/cron/digest?only=<email>&limit=1`. Consider a likes feature to deepen
+  personalization, and an account-page digest toggle.
+
 ## 2026-10-09 — Ask iWord floating widget (GitHub Copilot)
 - **Goal:** Surface Ask iWord site-wide as a corner chatbot, expandable to the
   full page, instead of living only on `/ask`.
