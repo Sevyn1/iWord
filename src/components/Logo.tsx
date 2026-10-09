@@ -7,8 +7,8 @@ type LogoProps = {
 };
 
 /**
- * iWord logo. The dot of the "i" is a glowing sun — "let there be light"
- * paired with "the Word." Pure inline SVG, no external assets.
+ * iWord logo — "Radiant Book": an open book under a burst of light,
+ * the Word illuminated. Pure inline SVG, no external assets.
  */
 export function Logo({ size = 28, showWordmark = true, className }: LogoProps) {
   const h = size;
@@ -28,21 +28,33 @@ export function Logo({ size = 28, showWordmark = true, className }: LogoProps) {
             <stop offset="60%" stopColor="#E0B265" />
             <stop offset="100%" stopColor="#B5853A" />
           </radialGradient>
+          <linearGradient id="iword-page" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#F5EFE2" />
+            <stop offset="100%" stopColor="#D8CDB4" />
+          </linearGradient>
         </defs>
         {/* outer ring */}
         <circle cx="20" cy="20" r="18" stroke="#B5853A" strokeWidth="1.3" opacity="0.55" />
-        {/* the "i" stem */}
-        <rect x="17.5" y="17" width="5" height="17" rx="2.5" fill="#1B2138" />
-        {/* the sun-dot */}
-        <circle cx="20" cy="10" r="4.2" fill="url(#iword-sun)" />
-        {/* small rays */}
-        <g stroke="#E0B265" strokeWidth="1.1" strokeLinecap="round" opacity="0.85">
-          <line x1="20" y1="2"  x2="20" y2="4.5" />
-          <line x1="28" y1="10" x2="25.8" y2="10" />
-          <line x1="12" y1="10" x2="14.2" y2="10" />
-          <line x1="25.8" y1="4.2" x2="24.2" y2="5.8" />
-          <line x1="14.2" y1="4.2" x2="15.8" y2="5.8" />
+        {/* light burst above the book */}
+        <circle cx="20" cy="13.5" r="3.4" fill="url(#iword-sun)" />
+        <g stroke="#E0B265" strokeWidth="1.1" strokeLinecap="round" opacity="0.9">
+          <line x1="20" y1="6" x2="20" y2="8.6" />
+          <line x1="13.6" y1="8.4" x2="15.4" y2="10.2" />
+          <line x1="26.4" y1="8.4" x2="24.6" y2="10.2" />
+          <line x1="11.5" y1="13.5" x2="14.2" y2="13.5" />
+          <line x1="28.5" y1="13.5" x2="25.8" y2="13.5" />
         </g>
+        {/* open book */}
+        <path
+          d="M8.5 21.5c4-1.8 8-1.8 11.5 0.8 3.5-2.6 7.5-2.6 11.5-0.8V31c-4-1.8-8-1.8-11.5 0.8C16.5 29.2 12.5 29.2 8.5 31V21.5Z"
+          fill="url(#iword-page)"
+        />
+        <path d="M20 22.3v9.5" stroke="#B5853A" strokeWidth="1" opacity="0.7" />
+        <path
+          d="M8.5 21.5c4-1.8 8-1.8 11.5 0.8 3.5-2.6 7.5-2.6 11.5-0.8V31c-4-1.8-8-1.8-11.5 0.8C16.5 29.2 12.5 29.2 8.5 31V21.5Z"
+          stroke="#B5853A"
+          strokeWidth="1.1"
+        />
       </svg>
       {showWordmark && (
         <span

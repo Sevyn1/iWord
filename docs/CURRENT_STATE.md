@@ -6,7 +6,7 @@
 > [DECISIONS.md](DECISIONS.md). Update this file after meaningful changes.
 > **Never** include secrets or real environment-variable values here.
 >
-> _Last updated: 2026-09-11_
+> _Last updated: 2026-10-09_
 
 ## Migrations
 
@@ -22,6 +22,13 @@
 
 ## Recently completed
 
+- **Logo redesign — "Radiant Book"** — `src/components/Logo.tsx` mark replaced:
+  the sun-dotted "i" is now an open book under a burst of light (same gold/navy
+  /cream palette, same outer ring, same props API `size`/`showWordmark`/
+  `className`). Pure inline SVG, no new assets; all usages (Navbar, Footer,
+  auth pages, error/not-found, homepage) pick it up automatically. Verified via
+  `tsc --noEmit` and a live dev-server render. `src/app/favicon.ico` was NOT
+  updated and still reflects no particular mark — candidate follow-up.
 - **Shared AI memory system** added (`fdee847`) — `AGENTS.md` shared rules (around
   the untouched Next.js block), `.github/copilot-instructions.md`, and
   `docs/{AI_CONTEXT,DECISIONS,CURRENT_STATE}.md`. Verified uncertain items against

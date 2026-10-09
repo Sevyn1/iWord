@@ -22,6 +22,19 @@
 
 ---
 
+## 2026-10-09 — Logo redesign: "Radiant Book" (GitHub Copilot)
+- **Goal:** Replace the logo mark with a new concept.
+- **Did:** Proposed 4 SVG concepts (radiant book, lamp/flame, sound-wave "i",
+  cross-dot "i") rendered side-by-side for the user; user chose **A — Radiant
+  Book** (open book under a burst of light). Rewrote the SVG in
+  `src/components/Logo.tsx`, keeping the palette, outer ring, wordmark, and the
+  `size`/`showWordmark`/`className` props API unchanged. Verified with
+  `tsc --noEmit` and a live `next dev` render (navbar + homepage).
+- **Decisions:** Kept the logo as a pure inline-SVG React component (no asset
+  files) — single source of truth, themable, zero extra requests.
+- **Open/next:** `src/app/favicon.ico` still shows the old/default icon — update
+  it to match the new mark if brand consistency matters.
+
 ## 2026-09-11 — Shared-memory freshness check (GitHub Copilot)
 - **Goal:** Add a lightweight, non-blocking reminder to update shared memory when
   code changes without a corresponding doc update.
