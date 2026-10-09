@@ -32,8 +32,12 @@
   `tsc --noEmit` and a live `next dev` render (navbar + homepage).
 - **Decisions:** Kept the logo as a pure inline-SVG React component (no asset
   files) — single source of truth, themable, zero extra requests.
-- **Open/next:** `src/app/favicon.ico` still shows the old/default icon — update
-  it to match the new mark if brand consistency matters.
+- **Open/next:** none — favicon follow-up completed same day (below).
+- **Follow-up (same session):** Added `src/app/icon.svg` (simplified Radiant
+  Book on a navy rounded tile for small-size legibility) and regenerated
+  `src/app/favicon.ico` from it (PNG-encoded 16/32/48, built with `sharp`).
+  Verified both are served with correct `<link rel="icon">` tags per the
+  Next.js app-icons file convention and remain legible at 16px.
 
 ## 2026-09-11 — Shared-memory freshness check (GitHub Copilot)
 - **Goal:** Add a lightweight, non-blocking reminder to update shared memory when

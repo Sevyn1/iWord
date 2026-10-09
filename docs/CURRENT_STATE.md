@@ -27,8 +27,10 @@
   /cream palette, same outer ring, same props API `size`/`showWordmark`/
   `className`). Pure inline SVG, no new assets; all usages (Navbar, Footer,
   auth pages, error/not-found, homepage) pick it up automatically. Verified via
-  `tsc --noEmit` and a live dev-server render. `src/app/favicon.ico` was NOT
-  updated and still reflects no particular mark — candidate follow-up.
+  `tsc --noEmit` and a live dev-server render. Follow-up completed:
+  `src/app/icon.svg` (simplified mark on a navy tile) added and
+  `src/app/favicon.ico` regenerated from it (PNG-encoded 16/32/48) so tab icons
+  match the new brand.
 - **Shared AI memory system** added (`fdee847`) — `AGENTS.md` shared rules (around
   the untouched Next.js block), `.github/copilot-instructions.md`, and
   `docs/{AI_CONTEXT,DECISIONS,CURRENT_STATE}.md`. Verified uncertain items against
