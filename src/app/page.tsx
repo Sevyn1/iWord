@@ -3,6 +3,7 @@ import { SermonCard } from "@/components/SermonCard";
 import { getRecent, getTrending, getAllSermons, getAllPastors } from "@/lib/content";
 import { getFollowedPastorIds } from "@/lib/follows";
 import { PastorAvatar } from "@/components/PastorAvatar";
+import { Carousel } from "@/components/Carousel";
 import { resolveCountry } from "@/lib/geo";
 import { Logo } from "@/components/Logo";
 import { DigestSignup } from "@/components/DigestSignup";
@@ -15,8 +16,8 @@ import { organizationJsonLd, websiteJsonLd } from "@/lib/jsonld";
 
 export default async function HomePage() {
   const [trending, recent, allSermons, pastors] = await Promise.all([
-    getTrending(6),
-    getRecent(4),
+    getTrending(12),
+    getRecent(12),
     getAllSermons(),
     getAllPastors(),
   ]);
@@ -214,22 +215,28 @@ export default async function HomePage() {
         title="Trending this week"
         action={<Link href="/sermons?sort=trending" className="text-sm text-cream-muted hover:text-cream">See all →</Link>}
       >
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {trending.slice(0, 4).map((s, i) => (
-            <SermonCard key={s.id} sermon={s} delayMs={i * 70} />
+        <Carousel ariaLabel="Trending sermons">
+          {trending.map((s, i) => (
+            <div key={s.id} role="listitem" className="w-72 sm:w-80 shrink-0 snap-start">
+              <SermonCard sermon={s} delayMs={i * 70} />
+            </div>
           ))}
-        </div>
+        </Carousel>
       </Section>
 
       {/* Pastors row */}
-      <Section title="Pastors on iWord">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+      <Section
+        title="Pastors on iWord"
+        action={<Link href="/churches" className="text-sm text-cream-muted hover:text-cream">See all →</Link>}
+      >
+        <Carousel ariaLabel="Pastors on iWord">
           {pastors.map((p, i) => (
             <Link
               key={p.id}
               href={`/pastors/${p.slug}`}
-              className="group text-center fade-up"
-              style={{ animationDelay: `${i * 60}ms` }}
+              role="listitem"
+              className="group text-center fade-up w-32 sm:w-36 shrink-0 snap-start"
+              style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
             >
               <div className="relative inline-block">
                 <div
@@ -251,7 +258,7 @@ export default async function HomePage() {
               </div>
             </Link>
           ))}
-        </div>
+        </Carousel>
       </Section>
 
       {/* Recently added */}
@@ -259,11 +266,13 @@ export default async function HomePage() {
         title="Recently added"
         action={<Link href="/sermons" className="text-sm text-cream-muted hover:text-cream">Browse all →</Link>}
       >
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Carousel ariaLabel="Recently added sermons">
           {recent.map((s, i) => (
-            <SermonCard key={s.id} sermon={s} delayMs={i * 70} />
+            <div key={s.id} role="listitem" className="w-72 sm:w-80 shrink-0 snap-start">
+              <SermonCard sermon={s} delayMs={i * 70} />
+            </div>
           ))}
-        </div>
+        </Carousel>
       </Section>
 
       {/* CTA strip — newsletter signup (only for signed-out visitors) */}

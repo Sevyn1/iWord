@@ -30,7 +30,12 @@
   already link it). Admin link remains gated by `profiles.is_admin`
   (server-checked in `UserMenu`) — it only appears for admin accounts.
   Follow-up polish: the homepage's plain "N sermons in the library" footnote is
-  now a closing stats band (sermons / pastors / daily additions + library CTA).
+  now a closing stats band (sermons / pastors / daily additions + library CTA),
+  and the homepage rows (Trending / Pastors / Recently added) are horizontal
+  scroll-snap carousels (`Carousel.tsx`: native swipe, hover arrows, edge
+  fades, gentle auto-advance that pauses on hover/touch and respects
+  prefers-reduced-motion) so they scale to any catalog size instead of growing
+  the page.
 - **Content expansion run (2026-10-09, partial)** — manual ingest pass added 4
   new sermons from existing feeds. **10 curated pastor feeds registered** via
   iTunes search (Tony Evans, Charles Stanley, David Jeremiah, Adrian Rogers,
