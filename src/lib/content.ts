@@ -374,6 +374,37 @@ export async function getTrending(limit = 6): Promise<Sermon[]> {
     .slice(0, limit);
 }
 
+/**
+ * Sermons that have an AI excerpt (audio + quote) — the "Daily Bread" clips
+ * feed. Shuffled per request so the feed feels fresh on every visit.
+ */
+export async function getClips(limit = 60): Promise<Sermon[]> {
+  const db = createPublicClient();
+  if (db) {
+    const { data, error } = await db
+      .from("sermons")
+      .select(SERMON_SELECT)
+      .eq("is_published", true)
+      .not("excerpt_url", "is", null)
+      .order("published_at", { ascending: false })
+      .limit(limit * 2);
+    if (!error && data && data.length > 0) {
+      const mapped = (data as unknown as SermonRow[]).map(mapSermon);
+      return shuffle(mapped).slice(0, limit);
+    }
+  }
+  return shuffle(SEED_SERMONS_WITH_PASTOR.filter((s) => s.excerptUrl)).slice(0, limit);
+}
+
+function shuffle<T>(list: T[]): T[] {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 export async function getRecent(limit = 6): Promise<Sermon[]> {
   const db = createPublicClient();
   if (db) {

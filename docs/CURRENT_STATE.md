@@ -24,6 +24,15 @@
 
 ## Recently completed
 
+- **"Daily Bread" clips feed (2026-10-09)** — `/clips`: a Shorts/TikTok-style
+  vertical feed of the ~90 AI sermon excerpts (`ClipsFeed.tsx` + `getClips()`
+  in `lib/content.ts`, shuffled per request). Scroll-snap, one shared audio
+  element (first tap unlocks autoplay per browser policy), auto-advance on
+  clip end, progress bar, quote overlay on sermon art/hue gradient, Web
+  Share/clipboard share, and a "Hear the full sermon" CTA funnelling into the
+  catalog/paywall. Free for everyone (growth surface — the excerpts bucket is
+  already public). "Clips" added to the navbar; the Ask widget hides on
+  `/clips` to keep the feed immersive.
 - **Weekly digest shipped (2026-10-09)** — `src/lib/digest.ts` +
   `/api/newsletter/{subscribe,unsubscribe}` + `/api/cron/digest` (Sundays 09:00
   UTC, CRON_SECRET bearer; see `vercel.json`) + migration 015

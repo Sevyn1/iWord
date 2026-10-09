@@ -27,7 +27,7 @@ export function AskWidget({ canAsk }: { canAsk: boolean }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  if (pathname === "/ask" || pathname.startsWith("/admin")) return null;
+  if (pathname === "/ask" || pathname === "/clips" || pathname.startsWith("/admin")) return null;
 
   // Sit above the MiniPlayer bar when something is playing.
   const offset = current ? "bottom-24" : "bottom-5";

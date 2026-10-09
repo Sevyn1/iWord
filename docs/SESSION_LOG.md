@@ -22,6 +22,22 @@
 
 ---
 
+## 2026-10-09 — "Daily Bread" clips feed (GitHub Copilot)
+- **Goal:** A growth surface: Shorts-style vertical feed of the existing 60s
+  AI excerpts, free for everyone, funnelling into full sermons.
+- **Did:** `getClips()` (published sermons with `excerpt_url`, shuffled),
+  `ClipsFeed.tsx` (scroll-snap feed, shared audio element with tap-to-unlock
+  then autoplay, IntersectionObserver active-clip tracking, auto-advance,
+  progress bar, share via Web Share/clipboard, full-sermon CTA), `/clips`
+  page (`force-dynamic`), navbar link, Ask widget hidden on `/clips`.
+  Verified live: playback, progress, snap-scroll, counters, desktop layout.
+- **Decisions:** Clips are ungated — the excerpts bucket is already public and
+  the feed exists to spread sermons and pull listeners toward the paywalled
+  full catalog.
+- **Open/next:** Transient `ERR_ABORTED` excerpt preloads during initial
+  observer churn (harmless); could add per-clip view tracking and an OG image
+  per clip for richer link shares.
+
 ## 2026-10-09 — Weekly digest shipped (GitHub Copilot)
 - **Goal:** Build the promised weekly digest/newsletter: personalized from what
   members follow and listen to, plus trending/new sermons with their write-ups.
