@@ -22,6 +22,20 @@
 
 ---
 
+## 2026-10-10 — Homepage carousels + content runs wrap-up (GitHub Copilot)
+- **Goal:** Homepage rows that scale with the catalog; pull new pastor content.
+- **Did:** `Carousel.tsx` (scroll-snap, hover arrows, edge fades, 4.5s
+  auto-advance with hover/touch/focus pause, reduced-motion respect) now powers
+  Trending / Pastors / Recently added; stats band replaced the old count
+  footnote. Ingest passes added ~24 sermons (library 937) but were stopped by
+  the owner before the 10 new auto-publish pastor feeds were scanned — the
+  08:00 cron will ingest them unattended.
+- **Decisions:** none new.
+- **Open/next:** Merge the "Charles H. Spurgeon" / "C. H. Spurgeon" duplicate
+  pastor created by discovery; consider flipping the 10 pastor feeds back to
+  review after their first ingest; verify a Resend domain for digest delivery
+  beyond the owner.
+
 ## 2026-10-09 — Content expansion + navbar declutter (GitHub Copilot)
 - **Goal:** More catalog content; tidier top nav.
 - **Did:** Manual ingest pass (+4 sermons). Registered 10 curated pastor feeds
